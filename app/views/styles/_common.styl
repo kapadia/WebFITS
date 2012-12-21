@@ -1,0 +1,39 @@
+$black = #000
+$white = #FFF
+
+$gray-dark        = hsl(0, 0, 20%)
+$gray-less-dark   = hsl(0, 0, 33%)
+$gray             = hsl(0, 0, 67%)
+$gray-less-light  = hsl(0, 0, 84%)
+$gray-light       = hsl(0, 0, 93%)
+$gray-more-light  = hsl(0, 0, 96%)
+
+#standard-button
+  background $gray-more-light
+  border 1px solid $gray-less-light
+  border-radius 3px
+  box-shadow 0 1px 0 rgba($white, 1) inset, 0 1px 3px rgba($black, 0.10)
+  color $gray-dark
+  font-size 0.9em
+  font-weight bold
+  margin 0 2px
+  padding 3px 10px
+  text-align center
+  text-shadow 0 1px 0 $white
+  text-decoration none
+  
+  &:disabled 
+    background-color $gray-less-light
+    color $gray
+    cursor auto
+  
+  &:hover 
+    border-color rgba($black, 0.67)
+  
+  
+  &:hover:disabled 
+    border-color rgba($black, 0.33)
+  
+  &:active:disabled,
+  &.selected:disabled 
+    box-shadow 0 1px 0 rgba($white, 0.75) inset
