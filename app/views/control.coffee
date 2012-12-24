@@ -23,8 +23,12 @@ class ControlView extends View
   render: ->
     @$el.append @template()
   
+  startAjax: ->
+    @find('.spinner').addClass('active')
+  
   # Ready is called when all FITS images have been transferred.
   ready: ->
+    @find('.spinner').removeClass('active')
     @find('*').removeProp('disabled')
     @find('label[for="r"]').click()
     @setBand()

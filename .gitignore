@@ -25,5 +25,7 @@ node_modules/
 # Brunch folder for temporary files.
 tmp/
 
+app.js
+app.css
 *.fits
 *.fz

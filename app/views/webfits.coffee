@@ -37,6 +37,7 @@ class WebFitsView extends View
     @fits.updateQ(value)
   
   setDataset: (value) =>
+    @control.startAjax()
     @fits.getData(value)
 
 module.exports = WebFitsView
