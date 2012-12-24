@@ -91,6 +91,19 @@ window.require.define({"test/test-helpers": function(exports, require, module) {
   
 }});
 
+window.require.define({"test/views/DataSource_test": function(exports, require, module) {
+  var DataSourceView;
+
+  DataSourceView = require('views/DataSource');
+
+  describe('DataSourceView', function() {
+    return beforeEach(function() {
+      return this.view = new DataSourceView();
+    });
+  });
+  
+}});
+
 window.require.define({"test/views/app_view_test": function(exports, require, module) {
   var AppView;
 
@@ -159,6 +172,7 @@ window.require.define({"test/views/webfits_test": function(exports, require, mod
   
 }});
 
+window.require('test/views/DataSource_test');
 window.require('test/views/app_view_test');
 window.require('test/views/filter_test');
 window.require('test/views/fits_test');

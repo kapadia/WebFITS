@@ -29,10 +29,6 @@ class FitsView extends View
     # Checking to make sure context initialize correctly
     unless @ctx?
       alert 'Something went wrong initiaizing a WebGL context'
-    
-    # Lots of WebGL setup complete by this point.  Need to get and send data to GPU
-    @fits = {}
-    @getData('CFHTLS_26')
   
   getApi: ->
     alert 'Sorry, update your browser' unless DataView?
@@ -53,13 +49,15 @@ class FitsView extends View
   # NOTE: This is hard coded for a sample data set of CFHTLS 26
   getData: (id) =>
     FITS = astro.FITS
+    
+    @fits = {}
     dfs = []
     xhrs = []
     for band in @bands
-      do (@fits, band) =>
-        fname = "#{id}_#{band}.fits"
+      do (band) =>
+        fname = "#{id}_#{band}_sci.fits"
         fpath = "data/#{fname}"
-      
+        
         # Initialize deferred object
         d = new $.Deferred()
         dfs.push(d)
@@ -90,6 +88,7 @@ class FitsView extends View
   
   # Automatically determine the scale for a given image
   # TODO: Generalize for telescopes other than CFHTLS
+  # TODO: CFHTLS_14 returns NaNs for scales.
   setScale: (hdu) =>
     
     # Get the zero point

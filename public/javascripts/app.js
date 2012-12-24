@@ -743,47 +743,7 @@ window.require.define({"routers/app_router": function(exports, require, module) 
   
 }});
 
-window.require.define({"views/app_view": function(exports, require, module) {
-  var AppRouter, AppView, View, WebFitsView,
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  View = require('lib/view');
-
-  AppRouter = require('routers/app_router');
-
-  WebFitsView = require('views/webfits');
-
-  AppView = (function(_super) {
-
-    __extends(AppView, _super);
-
-    function AppView() {
-      return AppView.__super__.constructor.apply(this, arguments);
-    }
-
-    AppView.prototype.el = 'body.application';
-
-    AppView.prototype.initialize = function() {
-      var _ref;
-      this.router = new AppRouter();
-      if (typeof WebFITS !== "undefined" && WebFITS !== null) {
-        if ((_ref = WebFITS.Routers) != null) {
-          _ref.AppRouter = this.router;
-        }
-      }
-      return this.webfits = new WebFitsView();
-    };
-
-    return AppView;
-
-  })(View);
-
-  module.exports = AppView;
-  
-}});
-
-window.require.define({"views/control": function(exports, require, module) {
+window.require.define({"views/Control": function(exports, require, module) {
   var ControlView, View,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
@@ -870,6 +830,185 @@ window.require.define({"views/control": function(exports, require, module) {
   
 }});
 
+window.require.define({"views/DataSource": function(exports, require, module) {
+  var DataSourceView, View,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  View = require('../lib/view');
+
+  DataSourceView = (function(_super) {
+
+    __extends(DataSourceView, _super);
+
+    function DataSourceView() {
+      return DataSourceView.__super__.constructor.apply(this, arguments);
+    }
+
+    DataSourceView.prototype.el = 'body.application';
+
+    DataSourceView.prototype.template = require('views/templates/datasource');
+
+    DataSourceView.prototype.className = 'DataSource';
+
+    DataSourceView.prototype.events = {
+      'click li.dataset': 'selectDataset'
+    };
+
+    DataSourceView.prototype.initialize = function() {
+      console.log('DataSourceView');
+      return this.render();
+    };
+
+    DataSourceView.prototype.render = function() {
+      var i, num, prefixes, _i;
+      prefixes = [];
+      for (i = _i = 1; _i <= 30; i = ++_i) {
+        num = String('0' + i).slice(-2);
+        prefixes.push("CFHTLS_" + num);
+      }
+      return this.$el.append(this.template({
+        source: prefixes
+      }));
+    };
+
+    DataSourceView.prototype.selectDataset = function(e) {
+      return this.trigger('change:dataset', e.target.textContent);
+    };
+
+    return DataSourceView;
+
+  })(View);
+
+  module.exports = DataSourceView;
+  
+}});
+
+window.require.define({"views/WebFits": function(exports, require, module) {
+  var ControlView, FitsView, View, WebFitsView,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  View = require('../lib/view');
+
+  ControlView = require('views/Control');
+
+  FitsView = require('views/fits');
+
+  WebFitsView = (function(_super) {
+
+    __extends(WebFitsView, _super);
+
+    function WebFitsView() {
+      this.setDataset = __bind(this.setDataset, this);
+
+      this.onQChange = __bind(this.onQChange, this);
+
+      this.onAlphaChange = __bind(this.onAlphaChange, this);
+
+      this.onBandChange = __bind(this.onBandChange, this);
+
+      this.onFitsReady = __bind(this.onFitsReady, this);
+      return WebFitsView.__super__.constructor.apply(this, arguments);
+    }
+
+    WebFitsView.prototype.el = 'body.application';
+
+    WebFitsView.prototype.template = require('views/templates/webfits');
+
+    WebFitsView.prototype.className = 'webfits';
+
+    WebFitsView.prototype.initialize = function() {
+      this.render();
+      this.control = new ControlView({
+        el: this.find('.controls')
+      });
+      this.fits = new FitsView({
+        el: this.find('.fits')
+      });
+      this.fits.on('fits:ready', this.onFitsReady);
+      this.control.on('change:band', this.onBandChange);
+      this.control.on('change:alpha', this.onAlphaChange);
+      return this.control.on('change:Q', this.onQChange);
+    };
+
+    WebFitsView.prototype.render = function() {
+      return this.$el.append(this.template());
+    };
+
+    WebFitsView.prototype.onFitsReady = function() {
+      return this.control.ready();
+    };
+
+    WebFitsView.prototype.onBandChange = function(band) {
+      return this.fits.selectBand(band);
+    };
+
+    WebFitsView.prototype.onAlphaChange = function(value) {
+      return this.fits.updateAlpha(value);
+    };
+
+    WebFitsView.prototype.onQChange = function(value) {
+      return this.fits.updateQ(value);
+    };
+
+    WebFitsView.prototype.setDataset = function(value) {
+      return this.fits.getData(value);
+    };
+
+    return WebFitsView;
+
+  })(View);
+
+  module.exports = WebFitsView;
+  
+}});
+
+window.require.define({"views/app_view": function(exports, require, module) {
+  var AppRouter, AppView, DataSource, View, WebFitsView,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  View = require('lib/view');
+
+  AppRouter = require('routers/app_router');
+
+  WebFitsView = require('views/WebFits');
+
+  DataSource = require('views/DataSource');
+
+  AppView = (function(_super) {
+
+    __extends(AppView, _super);
+
+    function AppView() {
+      return AppView.__super__.constructor.apply(this, arguments);
+    }
+
+    AppView.prototype.el = 'body.application';
+
+    AppView.prototype.initialize = function() {
+      var _ref;
+      this.router = new AppRouter();
+      if (typeof WebFITS !== "undefined" && WebFITS !== null) {
+        if ((_ref = WebFITS.Routers) != null) {
+          _ref.AppRouter = this.router;
+        }
+      }
+      this.webfits = new WebFitsView();
+      this.datasource = new DataSource();
+      return this.datasource.on('change:dataset', this.webfits.setDataset);
+    };
+
+    return AppView;
+
+  })(View);
+
+  module.exports = AppView;
+  
+}});
+
 window.require.define({"views/fits": function(exports, require, module) {
   var FitsView, View,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
@@ -919,8 +1058,6 @@ window.require.define({"views/fits": function(exports, require, module) {
       if (this.ctx == null) {
         alert('Something went wrong initiaizing a WebGL context');
       }
-      this.fits = {};
-      this.getData('CFHTLS_26');
     }
 
     FitsView.prototype.getApi = function() {
@@ -946,13 +1083,13 @@ window.require.define({"views/fits": function(exports, require, module) {
       var FITS, band, dfs, xhr, xhrs, _fn, _i, _j, _len, _len1, _ref,
         _this = this;
       FITS = astro.FITS;
+      this.fits = {};
       dfs = [];
       xhrs = [];
       _ref = this.bands;
-      _fn = function(fits, band) {
+      _fn = function(band) {
         var d, fname, fpath, xhr;
-        _this.fits = fits;
-        fname = "" + id + "_" + band + ".fits";
+        fname = "" + id + "_" + band + "_sci.fits";
         fpath = "data/" + fname;
         d = new $.Deferred();
         dfs.push(d);
@@ -960,6 +1097,7 @@ window.require.define({"views/fits": function(exports, require, module) {
         xhr.open('GET', fpath);
         xhr.responseType = 'arraybuffer';
         xhr.onload = function(e) {
+          var fits;
           fits = new FITS.File(xhr.response);
           fits.getDataUnit().getFrame();
           _this.setScale(fits.getHDU());
@@ -970,7 +1108,7 @@ window.require.define({"views/fits": function(exports, require, module) {
       };
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         band = _ref[_i];
-        _fn(this.fits, band);
+        _fn(band);
       }
       for (_j = 0, _len1 = xhrs.length; _j < _len1; _j++) {
         xhr = xhrs[_j];
@@ -1059,6 +1197,29 @@ window.require.define({"views/templates/control": function(exports, require, mod
     return "<div class='bands'>\n  <input type='radio' name='band' id='gri' />\n  <label for='gri' data-band='gri'>g-r-i</label>\n\n  <input type='radio' name='band' id='u' />\n  <label for='u' data-band='u'>u</label>\n\n  <input type='radio' name='band' id='g' />\n  <label for='g' data-band='g'>g</label>\n\n  <input type='radio' name='band' id='r' />\n  <label for='r' data-band='r'>r</label>\n\n  <input type='radio' name='band' id='i' />\n  <label for='i' data-band='i'>i</label>\n\n  <input type='radio' name='band' id='z' />\n  <label for='z' data-band='z'>z</label>\n</div>\n\n<div class='parameters'>\n  <input type=\"range\" name=\"alpha\" min=\"0.01\" max=\"1\" step=\"0.01\" value=\"0.03\" disabled='disabled'>\n  <div class='parameter'>&alpha;: 0.03</div>\n  <input type=\"range\" name=\"Q\" min=\"0.01\" max=\"100\" step=\"0.01\" value=\"1\" disabled='disabled'>\n  <div class='parameter'>Q: 1</div>\n</input>";});
 }});
 
+window.require.define({"views/templates/datasource": function(exports, require, module) {
+  module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+    helpers = helpers || Handlebars.helpers;
+    var buffer = "", stack1, foundHelper, functionType="function", escapeExpression=this.escapeExpression, self=this, blockHelperMissing=helpers.blockHelperMissing;
+
+  function program1(depth0,data) {
+    
+    var buffer = "";
+    buffer += "\n  <li class='dataset'>";
+    depth0 = typeof depth0 === functionType ? depth0() : depth0;
+    buffer += escapeExpression(depth0) + "</li>\n";
+    return buffer;}
+
+    buffer += "<div class='datasource'>\n<ul>\n";
+    foundHelper = helpers.source;
+    if (foundHelper) { stack1 = foundHelper.call(depth0, {hash:{},inverse:self.noop,fn:self.program(1, program1, data)}); }
+    else { stack1 = depth0.source; stack1 = typeof stack1 === functionType ? stack1() : stack1; }
+    if (!helpers.source) { stack1 = blockHelperMissing.call(depth0, stack1, {hash:{},inverse:self.noop,fn:self.program(1, program1, data)}); }
+    if(stack1 || stack1 === 0) { buffer += stack1; }
+    buffer += "\n</ul>\n</div>";
+    return buffer;});
+}});
+
 window.require.define({"views/templates/fits": function(exports, require, module) {
   module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
     helpers = helpers || Handlebars.helpers;
@@ -1075,80 +1236,5 @@ window.require.define({"views/templates/webfits": function(exports, require, mod
 
 
     return "<div class='webfits'>\n  <div class='controls'></div>\n  <div class='fits'></div>\n</div>";});
-}});
-
-window.require.define({"views/webfits": function(exports, require, module) {
-  var ControlView, FitsView, View, WebFitsView,
-    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  View = require('../lib/view');
-
-  ControlView = require('views/control');
-
-  FitsView = require('views/fits');
-
-  WebFitsView = (function(_super) {
-
-    __extends(WebFitsView, _super);
-
-    function WebFitsView() {
-      this.onQChange = __bind(this.onQChange, this);
-
-      this.onAlphaChange = __bind(this.onAlphaChange, this);
-
-      this.onBandChange = __bind(this.onBandChange, this);
-
-      this.onFitsReady = __bind(this.onFitsReady, this);
-      return WebFitsView.__super__.constructor.apply(this, arguments);
-    }
-
-    WebFitsView.prototype.el = 'body.application';
-
-    WebFitsView.prototype.template = require('views/templates/webfits');
-
-    WebFitsView.prototype.className = 'webfits';
-
-    WebFitsView.prototype.initialize = function() {
-      this.render();
-      this.control = new ControlView({
-        el: this.find('.controls')
-      });
-      this.fits = new FitsView({
-        el: this.find('.fits')
-      });
-      this.fits.on('fits:ready', this.onFitsReady);
-      this.control.on('change:band', this.onBandChange);
-      this.control.on('change:alpha', this.onAlphaChange);
-      return this.control.on('change:Q', this.onQChange);
-    };
-
-    WebFitsView.prototype.render = function() {
-      return this.$el.append(this.template());
-    };
-
-    WebFitsView.prototype.onFitsReady = function() {
-      return this.control.ready();
-    };
-
-    WebFitsView.prototype.onBandChange = function(band) {
-      return this.fits.selectBand(band);
-    };
-
-    WebFitsView.prototype.onAlphaChange = function(value) {
-      return this.fits.updateAlpha(value);
-    };
-
-    WebFitsView.prototype.onQChange = function(value) {
-      return this.fits.updateQ(value);
-    };
-
-    return WebFitsView;
-
-  })(View);
-
-  module.exports = WebFitsView;
-  
 }});
 

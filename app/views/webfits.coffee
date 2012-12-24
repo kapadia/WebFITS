@@ -1,6 +1,6 @@
 View = require '../lib/view'
 
-ControlView = require 'views/control'
+ControlView = require 'views/Control'
 FitsView    = require 'views/fits'
 
 class WebFitsView extends View
@@ -35,5 +35,8 @@ class WebFitsView extends View
 
   onQChange: (value) =>
     @fits.updateQ(value)
+  
+  setDataset: (value) =>
+    @fits.getData(value)
 
 module.exports = WebFitsView
