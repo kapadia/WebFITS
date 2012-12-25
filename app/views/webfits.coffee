@@ -17,15 +17,20 @@ class WebFitsView extends View
     
     # Bind events
     @fits.on('fits:ready', @onFitsReady)
+    @fits.on('fits:scale', @onScaleCompute)
     @control.on('change:band', @onBandChange)
     @control.on('change:alpha', @onAlphaChange)
     @control.on('change:Q', @onQChange)
+    @control.on('change:scale', @onScaleChange)
   
   render: ->
     @$el.append @template()
   
   onFitsReady: =>
     @control.ready()
+    
+  onScaleCompute: (band, value) =>
+    @control.setComputedScale(band, value)
   
   onBandChange: (band) =>
     @fits.selectBand(band)
@@ -35,6 +40,9 @@ class WebFitsView extends View
 
   onQChange: (value) =>
     @fits.updateQ(value)
+  
+  onScaleChange: (band, value) =>
+    @fits.updateScale(band, value)
   
   setDataset: (value) =>
     @control.startAjax()

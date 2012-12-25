@@ -1,9 +1,8 @@
 View = require '../lib/view'
 
 class FitsView extends View
-  template: require 'views/templates/fits'
   className: 'fits'
-    
+  
   bands: ['u', 'g', 'r', 'i', 'z']
   
   # Look up table for filter to wavelength conversion (CFHTLS specific)
@@ -16,10 +15,7 @@ class FitsView extends View
     'i.MP9702': 7700
     'z.MP9801': 9000
   
-  constructor: ->
-    console.log 'FitsView'
-    super
-    
+  initialize: =>
     @getApi()
     
     # NOTE: Dimension is currently hard coded
@@ -34,17 +30,15 @@ class FitsView extends View
     alert 'Sorry, update your browser' unless DataView?
     
     # Determine if WebGL is supported, otherwise fall back to canvas
-    canvas = document.createElement('canvas')
+    canvas  = document.createElement('canvas')
     context = canvas.getContext('webgl')
     context = canvas.getContext('experimental-webgl') unless context?
+    
     checkWebGL = context?
     
+    # TODO: Load correct lib asynchronously
     WebFitsApi = if checkWebGL then require('lib/webfits_webgl') else require('lib/webfits_canvas')
     @wfits = new WebFitsApi()
-    
-  # NOTE: This is not currently used
-  render: ->
-    @$el.append @template()
 
   # NOTE: This is hard coded for a sample data set of CFHTLS 26
   getData: (id) =>
@@ -118,6 +112,8 @@ class FitsView extends View
       header = @fits[band].getHDU().header
       scale = header['SCALE']
       header['NSCALE'] = scale / avg
+      
+      @trigger 'fits:scale', band, header['NSCALE']
       @wfits.setScale(@ctx, band, header['NSCALE'])
   
   selectBand: (band) =>
@@ -136,5 +132,8 @@ class FitsView extends View
   
   updateQ: (value) =>
     @wfits.setQ(@ctx, value)
+    
+  updateScale: (band, value) =>
+    @wfits.setScale(@ctx, band, value)
   
 module.exports = FitsView

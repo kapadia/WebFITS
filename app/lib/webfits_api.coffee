@@ -28,4 +28,9 @@ class WebFitsApi
   draw: =>
     console.log 'draw'
   
+  getHistogram: (arr) ->
+    console.log 'getHistogram'
+    
+    
+  
 module.exports = WebFitsApi

@@ -127,11 +127,11 @@ class WebFitsWebGlApi extends WebFitsApi
   
   # Set scale for a channel in the color composite image
   setScale: (gl, band, scale) ->
-    console.log band, scale
     gl.useProgram(@program2)
     
     location = gl.getUniformLocation(@program2, "u_#{band}scale")
     gl.uniform1f(location, scale)
+    gl.drawArrays(gl.TRIANGLES, 0, 6)
   
   # Set the alpha parameter for the Lupton algorithm
   setAlpha: (gl, value) =>

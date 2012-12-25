@@ -5,9 +5,10 @@ class ControlView extends View
   className: 'control'
   
   events:
-    'click input[name="band"]'    : 'setBand'
+    'click  input[name="band"]'   : 'setBand'
     'change input[name="alpha"]'  : 'setAlpha'
     'change input[name="Q"]'      : 'setQ'
+    'change input.scale'          : 'setScale'
   
   initialize: =>
     @render()
@@ -19,6 +20,9 @@ class ControlView extends View
     @ranges = @find('input[type="range"]')
     @alpha  = @find('input[name="alpha"] + .parameter')
     @Q      = @find('input[name="Q"] + .parameter')
+    @g      = @find('input[name="g"] + .parameter')
+    @r      = @find('input[name="r"] + .parameter')
+    @i      = @find('input[name="i"] + .parameter')
   
   render: ->
     @$el.append @template()
@@ -32,6 +36,10 @@ class ControlView extends View
     @find('*').removeProp('disabled')
     @find('label[for="r"]').click()
     @setBand()
+  
+  setComputedScale: (band, value) ->
+    console.log 'setComputedScale'
+    @find("input[name='#{band}']").val(value)
   
   setBand: ->
     console.log 'setBand'
@@ -55,5 +63,12 @@ class ControlView extends View
     @Q.offset({top: e.target.offsetTop - 10, left: 401 * val / 100})
     
     @trigger('change:Q', val)
+  
+  setScale: (e) =>
+    val = e.target.value
+    band = e.target.name
+    @[band].text("#{band}: #{val}")
+    @[band].offset({top: e.target.offsetTop - 10, left: 401 * val / 2})
+    @trigger('change:scale', band, val)
     
 module.exports = ControlView
