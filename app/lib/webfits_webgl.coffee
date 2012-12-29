@@ -133,6 +133,18 @@ class WebFitsWebGlApi extends WebFitsApi
     gl.uniform1f(location, scale)
     gl.drawArrays(gl.TRIANGLES, 0, 6)
   
+  setSky: (gl, band, sky) ->
+    gl.useProgram(@program2)
+    
+    location = gl.getUniformLocation(@program2, "u_#{band}sky")
+    gl.uniform1f(location, sky)
+    
+  setMax: (gl, band, max) ->
+    gl.useProgram(@program2)
+    
+    location = gl.getUniformLocation(@program2, "u_#{band}max")
+    gl.uniform1f(location, max)
+  
   # Set the alpha parameter for the Lupton algorithm
   setAlpha: (gl, value) =>
     gl.useProgram(@program2)
@@ -149,6 +161,13 @@ class WebFitsWebGlApi extends WebFitsApi
     gl.uniform1f(location, value)
     gl.drawArrays(gl.TRIANGLES, 0, 6)
     
+  setColorSaturation: (gl, value) =>
+    gl.useProgram(@program2)
+    
+    location = gl.getUniformLocation(@program2, 'u_colorsat')
+    gl.uniform1f(location, value)
+    gl.drawArrays(gl.TRIANGLES, 0, 6)
+  
   drawGrayScale: (gl, data) ->
     gl.useProgram(@program1)
     gl.activeTexture(gl.TEXTURE0)

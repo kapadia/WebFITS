@@ -22,6 +22,7 @@ class WebFitsView extends View
     @control.on('change:alpha', @onAlphaChange)
     @control.on('change:Q', @onQChange)
     @control.on('change:scale', @onScaleChange)
+    @control.on('change:colorsat', @onSaturationChange)
   
   render: ->
     @$el.append @template()
@@ -43,6 +44,9 @@ class WebFitsView extends View
   
   onScaleChange: (band, value) =>
     @fits.updateScale(band, value)
+  
+  onSaturationChange: (value) =>
+    @fits.updateColorSaturation(value)
   
   setDataset: (value) =>
     @control.startAjax()

@@ -5,6 +5,10 @@ class FitsView extends View
   
   bands: ['u', 'g', 'r', 'i', 'z']
   
+  # Percentiles for sky and max levels
+  skyp: 0.5
+  maxp: 0.995
+  
   # Look up table for filter to wavelength conversion (CFHTLS specific)
   # CFHT MegaCam (from http://www.cfht.hawaii.edu/Instruments/Imaging/Megacam/specsinformation.html)
   wavelengths:
@@ -62,9 +66,11 @@ class FitsView extends View
         xhr.onload = (e) =>
           fits = new FITS.File(xhr.response)
           fits.getDataUnit().getFrame()
-
-          # Get the scale parameters
-          @setScale(fits.getHDU())
+          
+          hdu = fits.getHDU()
+          
+          # Get the scale and sky level
+          @setScale(hdu)
           
           @fits[band] = fits
           d.resolve()
@@ -77,6 +83,7 @@ class FitsView extends View
     $.when.apply(this, dfs)
       .done( (e) =>
         @normalizeScales()
+        @getPercentiles()
         @trigger "fits:ready"
       )
   
@@ -127,6 +134,26 @@ class FitsView extends View
       data = @fits[band].getDataUnit().data
       @wfits.drawGrayScale(@ctx, data)
   
+  getPercentile: (sorted, p) ->
+    rank = Math.round(p * sorted.length + 0.5)
+    return sorted[rank]
+  
+  getPercentiles: =>
+    
+    for band in ['g', 'r', 'i']
+      data = @fits[band].getDataUnit().data
+      
+      # Create a deep copy of the array and sort
+      sorted = new Float32Array(data)
+      sorted = radixsort()(sorted)
+      
+      # Get sky level (p = 0.5) and max level (p = 0.9975)
+      sky = @getPercentile(sorted, @skyp)
+      max = @getPercentile(sorted, @maxp)
+      
+      @wfits.setSky(@ctx, band, sky)
+      @wfits.setMax(@ctx, band, max)
+  
   updateAlpha: (value) =>
     @wfits.setAlpha(@ctx, value)
   
@@ -135,5 +162,8 @@ class FitsView extends View
     
   updateScale: (band, value) =>
     @wfits.setScale(@ctx, band, value)
+  
+  updateColorSaturation: (value) =>
+    @wfits.setColorSaturation(@ctx, value)
   
 module.exports = FitsView
