@@ -99,9 +99,9 @@ WebGlShaders =
       
       # Compute min level from sky, grey and max level
       # TODO: Move to JavaScript, this computation should only be done once by the CPU
-      "float rmin = (u_isky - greygf * u_imax) / (1 - greygf);",
-      "float gmin = (u_rsky - greygf * u_rmax) / (1 - greygf);",
-      "float bmin = (u_gsky - greygf * u_gmax) / (1 - greygf);",
+      "float rmin = (u_isky - greygf * u_imax) / (1. - greygf);",
+      "float gmin = (u_rsky - greygf * u_rmax) / (1. - greygf);",
+      "float bmin = (u_gsky - greygf * u_gmax) / (1. - greygf);",
       
       # Compute the sum and factor
       "float I = r + g + b + 1e-10;",
