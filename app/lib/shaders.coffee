@@ -45,7 +45,95 @@ WebGlShaders =
     "}"
   ].join("\n")
   
+  wherry: [
+    "precision mediump float;",
+    
+    "uniform sampler2D u_tex_g;",
+    "uniform sampler2D u_tex_r;",
+    "uniform sampler2D u_tex_i;",
+    
+    "uniform float u_gscale;",
+    "uniform float u_rscale;",
+    "uniform float u_iscale;",
+    
+    "uniform float u_alpha;",
+    "uniform float u_Q;",
+    
+    "varying vec2 v_textureCoord;",
+    
+    "float arcsinh(float value) {",
+      "return log(value + sqrt(1. + value * value));",
+    "}",
+    
+    "void main() {",
+      # Get the pixel intensities from textures
+      "vec4 pixel_v_i = texture2D(u_tex_i, v_textureCoord);",
+      "vec4 pixel_v_r = texture2D(u_tex_r, v_textureCoord);",
+      "vec4 pixel_v_g = texture2D(u_tex_g, v_textureCoord);",
+      
+      # Store the current pixel value for each texture and apply scale
+      "float r = pixel_v_i[0] * u_iscale;",
+      "float g = pixel_v_r[0] * u_rscale;",
+      "float b = pixel_v_g[0] * u_gscale;",
+      
+      # Compute the total intensity and stretch factor
+      "float I = r + g + b;",
+      "float X = arcsinh(u_alpha * u_Q * I) / (u_Q * I);",
+      
+      # Apply stretch factor to scaled pixels
+      "float R = r * X;",
+      "float G = g * X;",
+      "float B = b * X;",
+      
+      "gl_FragColor = vec4(R, G, B, 1.0);",
+    "}"
+  ].join("\n")
+  
   lupton: [
+    "precision mediump float;",
+    
+    "uniform sampler2D u_tex_g;",
+    "uniform sampler2D u_tex_r;",
+    "uniform sampler2D u_tex_i;",
+    
+    "uniform float u_gscale;",
+    "uniform float u_rscale;",
+    "uniform float u_iscale;",
+    
+    "uniform float u_alpha;",
+    "uniform float u_Q;",
+    
+    "varying vec2 v_textureCoord;",
+    
+    "float arcsinh(float value) {",
+      "return log(value + sqrt(1.0 + value * value));",
+    "}",
+    
+    "void main() {",
+      # Get the pixel intensities from textures
+      "vec4 pixel_v_g = texture2D(u_tex_g, v_textureCoord);",
+      "vec4 pixel_v_r = texture2D(u_tex_r, v_textureCoord);",
+      "vec4 pixel_v_i = texture2D(u_tex_i, v_textureCoord);",
+      
+      # Store the current pixel value for each texture and apply scale
+      "float r = pixel_v_i[0] * u_iscale;",
+      "float g = pixel_v_r[0] * u_rscale;",
+      "float b = pixel_v_g[0] * u_gscale;",
+      
+      # Compute the total intensity and stretch factor
+      "float I = r + g + b + 1e-10;",
+      "float factor = arcsinh(u_alpha * u_Q * I) / (u_Q * I);",
+      
+      # Apply stretch factor to scaled pixels
+      "float R = clamp(r * factor, 0.0, 1.0);",
+      "float G = clamp(g * factor, 0.0, 1.0);",
+      "float B = clamp(b * factor, 0.0, 1.0);",
+      
+      "gl_FragColor = vec4(R, G, B, 1.0);",
+    "}"
+  ].join("\n")
+  
+  stiff: [
     "precision mediump float;",
 
     "uniform sampler2D u_tex_g;",

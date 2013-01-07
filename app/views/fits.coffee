@@ -31,17 +31,18 @@ class FitsView extends View
       alert 'Something went wrong initiaizing a WebGL context'
   
   getApi: ->
-    alert 'Sorry, update your browser' unless DataView?
-    
-    # Determine if WebGL is supported, otherwise fall back to canvas
-    canvas  = document.createElement('canvas')
-    context = canvas.getContext('webgl')
-    context = canvas.getContext('experimental-webgl') unless context?
-    
-    checkWebGL = context?
-    
-    # TODO: Load correct lib asynchronously
-    WebFitsApi = if checkWebGL then require('lib/webfits_webgl') else require('lib/webfits_canvas')
+    # alert 'Sorry, update your browser' unless DataView?
+    # 
+    # # Determine if WebGL is supported, otherwise fall back to canvas
+    # canvas  = document.createElement('canvas')
+    # context = canvas.getContext('webgl')
+    # context = canvas.getContext('experimental-webgl') unless context?
+    # 
+    # checkWebGL = context?
+    # 
+    # # TODO: Load correct lib asynchronously
+    # WebFitsApi = if checkWebGL then require('lib/webfits_webgl') else require('lib/webfits_canvas')
+    WebFitsApi = require('lib/webfits_webgl')
     @wfits = new WebFitsApi()
 
   # NOTE: This is hard coded for a sample data set of CFHTLS 26
@@ -89,13 +90,10 @@ class FitsView extends View
   
   # Automatically determine the scale for a given image
   # TODO: Generalize for telescopes other than CFHTLS
-  # TODO: CFHTLS_14 returns NaNs for scales.
   setScale: (hdu) =>
     
-    # Get the zero point
+    # Get the zero point and exposure time
     zpoint = hdu.header['PHOT_C']
-    
-    # Get the exposure time
     exptime = hdu.header['EXPTIME']
     
     # Get the filter and wavelength

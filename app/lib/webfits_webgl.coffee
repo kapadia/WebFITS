@@ -176,14 +176,32 @@ class WebFitsWebGlApi extends WebFitsApi
     gl.drawArrays(gl.TRIANGLES, 0, 6)
   
   # Pass three arrays to three GPU textures
+  # FIXME: The g filter is being used for all three bands when the image is composited.
   drawColor: (gl, arr) ->
     gl.useProgram(@program2)
     
-    for i in [0..2]
-      gl.activeTexture(gl["TEXTURE#{i}"])
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, 401, 401, 0, gl.LUMINANCE, gl.FLOAT, arr[i])
+    gl.activeTexture(gl.TEXTURE0)
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, 401, 401, 0, gl.LUMINANCE, gl.FLOAT, arr[0])
+    location = gl.getUniformLocation(@program2, 'u_tex_g');
+    gl.uniform1i(location, 0)
     
+    gl.activeTexture(gl.TEXTURE1)
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, 401, 401, 0, gl.LUMINANCE, gl.FLOAT, arr[1])
+    location = gl.getUniformLocation(@program2, 'u_tex_r');
+    gl.uniform1i(location, 1)
+    
+    gl.activeTexture(gl.TEXTURE2)
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, 401, 401, 0, gl.LUMINANCE, gl.FLOAT, arr[2])
+    location = gl.getUniformLocation(@program2, 'u_tex_i');
+    gl.uniform1i(location, 2)
+    
+    # for i in [0..2]
+    #   gl.activeTexture(gl["TEXTURE#{i}"])
+    #   gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, 401, 401, 0, gl.LUMINANCE, gl.FLOAT, arr[i])
+    #   location = gl.getUniformLocation(@program2, 'u_tex_g');
+    
+    gl.activeTexture(gl.TEXTURE0)
     gl.drawArrays(gl.TRIANGLES, 0, 6)
-    
-  
+
+
 module.exports = WebFitsWebGlApi
