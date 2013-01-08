@@ -32,10 +32,14 @@ class FitsView extends View
     
     # Checking to make sure context initialize correctly
     unless @ctx?
-      alert 'Something went wrong initiaizing a WebGL context'
+      alert 'Something went wrong initiaizing a the context'
     
     # Initialize a collections for storing FITS images
     @collection = new Layers()
+    
+    # Set default parameters
+    @wfits.setAlpha(@ctx, 0.03)
+    @wfits.setQ(@ctx, 1)
   
   getApi: ->
     console.warn 'TODO: Make getApi asynchronous'
@@ -47,10 +51,8 @@ class FitsView extends View
     context = canvas.getContext('webgl')
     context = canvas.getContext('experimental-webgl') unless context?
     
-    checkWebGL = context?
-    
     # TODO: Load correct lib asynchronously
-    WebFitsApi = if checkWebGL then require('lib/webfits_webgl') else require('lib/webfits_canvas')
+    WebFitsApi = if context? then require('lib/webfits_webgl') else require('lib/webfits_canvas')
     @wfits = new WebFitsApi()
     
   requestData: (id) =>
@@ -145,7 +147,7 @@ class FitsView extends View
       @wfits.drawColor(@ctx, arr)
     else
       data = @collection.where({band: band})[0].getData()
-      @wfits.drawGrayScale(@ctx, data)
+      @wfits.drawGrayScale(@ctx, data, band)
   
   # Compute a percentile by computing rank and selecting on a sorted array
   getPercentile: (sorted, p) ->

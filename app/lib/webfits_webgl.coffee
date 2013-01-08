@@ -3,8 +3,7 @@ Shaders     = require 'lib/shaders'
 
 class WebFitsWebGlApi extends WebFitsApi
   
-  constructor: ->
-    console.log 'WebFitsApi for WebGL'
+  algorithm: Shaders.lupton
   
   # Code using this function must check if a context is returned
   getContext: (canvas) ->
@@ -30,7 +29,7 @@ class WebFitsWebGlApi extends WebFitsApi
     fragShader = @_loadShader(context, Shaders.fragment, context.FRAGMENT_SHADER)
     return null unless fragShader
     
-    colorShader = @_loadShader(context, Shaders.lupton, context.FRAGMENT_SHADER)
+    colorShader = @_loadShader(context, @algorithm, context.FRAGMENT_SHADER)
     return null unless colorShader
     
     # Create the program
@@ -133,12 +132,6 @@ class WebFitsWebGlApi extends WebFitsApi
     location = gl.getUniformLocation(@program2, "u_#{band}scale")
     gl.uniform1f(location, scale)
     gl.drawArrays(gl.TRIANGLES, 0, 6)
-  
-  setSky: (gl, band, sky) ->
-    gl.useProgram(@program2)
-    
-    location = gl.getUniformLocation(@program2, "u_#{band}sky")
-    gl.uniform1f(location, sky)
     
   setMax: (gl, band, max) ->
     gl.useProgram(@program2)

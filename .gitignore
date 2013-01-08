@@ -30,3 +30,4 @@ app.css
 *.fits
 *.fz
 public/data
+public/javascripts/vendor.js

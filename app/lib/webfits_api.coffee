@@ -3,11 +3,10 @@ class WebFitsApi
   scales: {}
   
   constructor: ->
-    console.log 'WebFitsApi for WebGL'
+    console.log 'WebFitsApi'
 
-  # Setup the DOM for the WebGL context
+  # Setup the DOM with a canvas
   setup: (elem, width, height) ->
-    console.log 'setup'
     
     # Attach canvas to DOM element
     canvas = document.createElement('canvas')
@@ -18,19 +17,5 @@ class WebFitsApi
     elem.appendChild(canvas)
     
     return canvas
-  
-  addFrame: (fits) =>
-    console.log 'addFrame'
-  
-  setScale: (ctx, band, scale) =>
-    @scales[band] = scale
-  
-  draw: =>
-    console.log 'draw'
-  
-  getHistogram: (arr) ->
-    console.log 'getHistogram'
-    
-    
   
 module.exports = WebFitsApi
