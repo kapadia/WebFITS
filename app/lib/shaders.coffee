@@ -92,9 +92,9 @@ WebGlShaders =
   lupton: [
     "precision mediump float;",
     
-    "uniform sampler2D u_tex_g;",
-    "uniform sampler2D u_tex_r;",
-    "uniform sampler2D u_tex_i;",
+    "uniform sampler2D u_tex0;",
+    "uniform sampler2D u_tex1;",
+    "uniform sampler2D u_tex2;",
     
     "uniform float u_gscale;",
     "uniform float u_rscale;",
@@ -111,9 +111,9 @@ WebGlShaders =
     
     "void main() {",
       # Get the pixel intensities from textures
-      "vec4 pixel_v_g = texture2D(u_tex_g, v_textureCoord);",
-      "vec4 pixel_v_r = texture2D(u_tex_r, v_textureCoord);",
-      "vec4 pixel_v_i = texture2D(u_tex_i, v_textureCoord);",
+      "vec4 pixel_v_g = texture2D(u_tex0, v_textureCoord);",
+      "vec4 pixel_v_r = texture2D(u_tex1, v_textureCoord);",
+      "vec4 pixel_v_i = texture2D(u_tex2, v_textureCoord);",
       
       # Store the current pixel value for each texture and apply scale
       "float r = pixel_v_i[0] * u_iscale;",
@@ -136,9 +136,9 @@ WebGlShaders =
   stiff: [
     "precision mediump float;",
 
-    "uniform sampler2D u_tex_g;",
-    "uniform sampler2D u_tex_r;",
-    "uniform sampler2D u_tex_i;",
+    "uniform sampler2D u_tex0;",
+    "uniform sampler2D u_tex1;",
+    "uniform sampler2D u_tex2;",
     
     "uniform vec2 u_extremes;",
     
@@ -171,9 +171,9 @@ WebGlShaders =
     
     "void main() {",
       # Get the pixel intensities from textures
-      "vec4 pixel_v_g = texture2D(u_tex_g, v_textureCoord);",
-      "vec4 pixel_v_r = texture2D(u_tex_r, v_textureCoord);",
-      "vec4 pixel_v_i = texture2D(u_tex_i, v_textureCoord);",
+      "vec4 pixel_v_g = texture2D(u_tex0, v_textureCoord);",
+      "vec4 pixel_v_r = texture2D(u_tex1, v_textureCoord);",
+      "vec4 pixel_v_i = texture2D(u_tex2, v_textureCoord);",
       
       # Store the current pixel value for each texture and apply scale
       "float r = pixel_v_i[0] * u_iscale;",
