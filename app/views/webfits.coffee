@@ -18,10 +18,12 @@ class WebFitsView extends View
     # Bind events
     @fits.on('fits:ready', @onFitsReady)
     @fits.on('fits:scale', @onScaleCompute)
+    
     @control.on('change:band', @onBandChange)
     @control.on('change:alpha', @onAlphaChange)
     @control.on('change:Q', @onQChange)
     @control.on('change:scale', @onScaleChange)
+    @control.on('change:bkgdsub', @onBkgdSubChange)
     @control.on('change:colorsat', @onSaturationChange)
   
   render: ->
@@ -34,7 +36,7 @@ class WebFitsView extends View
     @control.setComputedScale(band, value)
   
   onBandChange: (band) =>
-    @fits.selectBand(band)
+    @fits.getBand(band)
 
   onAlphaChange: (value) =>
     @fits.updateAlpha(value)
@@ -45,11 +47,14 @@ class WebFitsView extends View
   onScaleChange: (band, value) =>
     @fits.updateScale(band, value)
   
+  onBkgdSubChange: (value) =>
+    @fits.updateBkgdSub(value)
+  
   onSaturationChange: (value) =>
     @fits.updateColorSaturation(value)
   
   setDataset: (value) =>
     @control.startAjax()
-    @fits.getData(value)
+    @fits.requestData(value)
 
 module.exports = WebFitsView

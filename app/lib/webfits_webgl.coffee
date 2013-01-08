@@ -125,6 +125,7 @@ class WebFitsWebGlApi extends WebFitsApi
       [y1, y2] = [y, y + height]
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([x1, y1, x2, y1, x1, y2, x1, y2, x2, y1, x2, y2]), gl.STATIC_DRAW)
   
+  
   # Set scale for a channel in the color composite image
   setScale: (gl, band, scale) ->
     gl.useProgram(@program2)
@@ -160,7 +161,15 @@ class WebFitsWebGlApi extends WebFitsApi
     location = gl.getUniformLocation(@program2, 'u_Q')
     gl.uniform1f(location, value)
     gl.drawArrays(gl.TRIANGLES, 0, 6)
+  
+  setBkgdSub: (gl, band, value) =>
+    console.warn 'TODO: Implement setBkgdSub for grayscale images'
+    gl.useProgram(@program2)
     
+    location = gl.getUniformLocation(@program2, "u_#{band}sky")
+    gl.uniform1f(location, value)
+    gl.drawArrays(gl.TRIANGLES, 0, 6)
+  
   setColorSaturation: (gl, value) =>
     gl.useProgram(@program2)
     
@@ -186,5 +195,5 @@ class WebFitsWebGlApi extends WebFitsApi
     
     gl.drawArrays(gl.TRIANGLES, 0, 6)
 
-
+  
 module.exports = WebFitsWebGlApi

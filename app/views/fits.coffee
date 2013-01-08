@@ -1,9 +1,13 @@
-View = require '../lib/view'
+
+View    = require '../lib/view'
+Layer   = require '../models/Layer'
+Layers  = require '../collections/Layers'
+
 
 class FitsView extends View
   className: 'fits'
   
-  bands: ['u', 'g', 'r', 'i', 'z']
+  bands:  ['u', 'g', 'r', 'i', 'z']
   
   # Percentiles for sky and max levels
   skyp: 0.5
@@ -29,27 +33,30 @@ class FitsView extends View
     # Checking to make sure context initialize correctly
     unless @ctx?
       alert 'Something went wrong initiaizing a WebGL context'
+    
+    # Initialize a collections for storing FITS images
+    @collection = new Layers()
   
   getApi: ->
-    # alert 'Sorry, update your browser' unless DataView?
-    # 
-    # # Determine if WebGL is supported, otherwise fall back to canvas
-    # canvas  = document.createElement('canvas')
-    # context = canvas.getContext('webgl')
-    # context = canvas.getContext('experimental-webgl') unless context?
-    # 
-    # checkWebGL = context?
-    # 
-    # # TODO: Load correct lib asynchronously
-    # WebFitsApi = if checkWebGL then require('lib/webfits_webgl') else require('lib/webfits_canvas')
-    WebFitsApi = require('lib/webfits_webgl')
-    @wfits = new WebFitsApi()
-
-  # NOTE: This is hard coded for a sample data set of CFHTLS 26
-  getData: (id) =>
-    FITS = astro.FITS
+    console.warn 'TODO: Make getApi asynchronous'
     
-    @fits = {}
+    alert 'Sorry, update your browser' unless DataView?
+    
+    # Determine if WebGL is supported, otherwise fall back to canvas
+    canvas  = document.createElement('canvas')
+    context = canvas.getContext('webgl')
+    context = canvas.getContext('experimental-webgl') unless context?
+    
+    checkWebGL = context?
+    
+    # TODO: Load correct lib asynchronously
+    WebFitsApi = if checkWebGL then require('lib/webfits_webgl') else require('lib/webfits_canvas')
+    @wfits = new WebFitsApi()
+    
+  requestData: (id) =>
+    FITS = astro.FITS
+    @collection.reset()
+    
     dfs = []
     xhrs = []
     for band in @bands
@@ -67,30 +74,34 @@ class FitsView extends View
         xhr.onload = (e) =>
           fits = new FITS.File(xhr.response)
           fits.getDataUnit().getFrame()
-          
           hdu = fits.getHDU()
           
-          # Get the scale and sky level
-          @setScale(hdu)
+          # Get the scale
+          scale = @computeScale(hdu)
           
-          @fits[band] = fits
+          # Initialize a model and push to collection
+          layer = new Layer({band: band, fits: fits, scale: scale})
+          @collection.add(layer)
           d.resolve()
         xhrs.push(xhr)
     
     # Now that XHRs are setup, send them off
     xhr.send() for xhr in xhrs
     
-    # Setup call back for when all requests are received
+    # Setup callback for when all requests are received
     $.when.apply(this, dfs)
       .done( (e) =>
-        @normalizeScales()
+        @computeNormalizedScales()
         @getPercentiles()
         @trigger "fits:ready"
       )
   
+  # Convenience function for log base 10
+  log10: (x) -> return Math.log(x) / Math.log(10)
+  
   # Automatically determine the scale for a given image
   # TODO: Generalize for telescopes other than CFHTLS
-  setScale: (hdu) =>
+  computeScale: (hdu) =>
     
     # Get the zero point and exposure time
     zpoint = hdu.header['PHOT_C']
@@ -100,66 +111,89 @@ class FitsView extends View
     filter = hdu.header['FILTER']
     wavelength = @wavelengths[filter]
     
-    scale = Math.pow(10, zpoint + 2.5 * @log10(wavelength) - 26.0)
-    hdu.header['SCALE'] = scale
-  
-  # Convenience function for log base 10
-  log10: (x) -> return Math.log(x) / Math.log(10)
+    return Math.pow(10, zpoint + 2.5 * @log10(wavelength) - 26.0)
   
   # Normalize scales for gri
-  normalizeScales: =>
-    scale = 0
-    for band in ['g', 'r', 'i']
-      scale += @fits[band].getHDU().header['SCALE']
-    avg = scale / 3
+  computeNormalizedScales: =>
+    gri = @collection.getColorLayers()
     
-    for band in ['g', 'r', 'i']
-      header = @fits[band].getHDU().header
-      scale = header['SCALE']
-      header['NSCALE'] = scale / avg
+    sum = gri.reduce( (memo, value) ->
+      return memo + value.get('scale')
+    , 0)
+    avg = sum / 3
+    
+    _.each(gri, (d) =>
+      band = d.get('band')
       
-      @trigger 'fits:scale', band, header['NSCALE']
-      @wfits.setScale(@ctx, band, header['NSCALE'])
+      # Compute and set normalized scale
+      nscale = d.get('scale') / avg
+      d.set('nscale', nscale)
+      
+      # Send to web fits object
+      @trigger 'fits:scale', band, nscale
+      @wfits.setScale @ctx, band, nscale
+    )
   
-  selectBand: (band) =>
+  # Responds to user selection of band.  Sends image(s) to web fits context.
+  getBand: (band) =>
     if band is 'gri'
       arr = []
-      for band in band.split('')
-        data = @fits[band].getDataUnit().data
-        arr.push(data)
+      gri = @collection.getColorLayers()
+      _.each(gri, (d) ->
+        arr.push(d.getData())
+      )
       @wfits.drawColor(@ctx, arr)
     else
-      data = @fits[band].getDataUnit().data
+      data = @collection.where({band: band})[0].getData()
       @wfits.drawGrayScale(@ctx, data)
   
+  # Compute a percentile by computing rank and selecting on a sorted array
   getPercentile: (sorted, p) ->
     rank = Math.round(p * sorted.length + 0.5)
     return sorted[rank]
   
+  # Generic call for various percentiles needed to render image(s)
   getPercentiles: =>
+    gri = @collection.getColorLayers()
     
-    for band in ['g', 'r', 'i']
-      data = @fits[band].getDataUnit().data
+    _.each(gri, (d) =>
+      data = d.getData()
       
-      # Create a deep copy of the array and sort
+      # Create a deep copy of the array for sort
       sorted = new Float32Array(data)
       sorted = radixsort()(sorted)
       
-      # Get sky level (p = 0.5) and max level (p = 0.9975)
+      # Get sky and max level
       sky = @getPercentile(sorted, @skyp)
       max = @getPercentile(sorted, @maxp)
       
-      @wfits.setSky(@ctx, band, sky)
-      @wfits.setMax(@ctx, band, max)
+      # Store on model
+      d.set('sky', sky)
+      d.set('max', max)
+    )
   
   updateAlpha: (value) =>
     @wfits.setAlpha(@ctx, value)
   
   updateQ: (value) =>
     @wfits.setQ(@ctx, value)
-    
+  
   updateScale: (band, value) =>
     @wfits.setScale(@ctx, band, value)
+  
+  updateBkgdSub: (state) =>
+    gri = @collection.getColorLayers()
+    
+    if state
+      # Send sky level to GPU
+      _.each(gri, (d) =>
+        @wfits.setBkgdSub(@ctx, d.get('band'), d.get('sky'))
+      )
+    else
+      # Send null to GPU
+      _.each(gri, (d) =>
+        @wfits.setBkgdSub(@ctx, d.get('band'), 0)
+      )
   
   updateColorSaturation: (value) =>
     @wfits.setColorSaturation(@ctx, value)

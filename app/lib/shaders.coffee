@@ -96,6 +96,10 @@ WebGlShaders =
     "uniform sampler2D u_tex1;",
     "uniform sampler2D u_tex2;",
     
+    "uniform float u_gsky;",
+    "uniform float u_rsky;",
+    "uniform float u_isky;",
+    
     "uniform float u_gscale;",
     "uniform float u_rscale;",
     "uniform float u_iscale;",
@@ -116,9 +120,9 @@ WebGlShaders =
       "vec4 pixel_v_i = texture2D(u_tex2, v_textureCoord);",
       
       # Store the current pixel value for each texture and apply scale
-      "float r = pixel_v_i[0] * u_iscale;",
-      "float g = pixel_v_r[0] * u_rscale;",
-      "float b = pixel_v_g[0] * u_gscale;",
+      "float r = (pixel_v_i[0] - u_isky) * u_iscale;",
+      "float g = (pixel_v_r[0] - u_rsky) * u_rscale;",
+      "float b = (pixel_v_g[0] - u_gsky) * u_gscale;",
       
       # Compute the total intensity and stretch factor
       "float I = r + g + b + 1e-10;",

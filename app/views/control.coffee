@@ -10,6 +10,7 @@ class ControlView extends View
     'change input[name="Q"]'        : 'setQ'
     'change input.scale'            : 'setScale'
     'change input[name="colorsat"]' : 'setColorSaturation'
+    'change input[name="bkgdsub"]'  : 'setBkgdSub'
   
   initialize: =>
     @render()
@@ -24,6 +25,7 @@ class ControlView extends View
     @g      = @find('input[name="g"] + .parameter')
     @r      = @find('input[name="r"] + .parameter')
     @i      = @find('input[name="i"] + .parameter')
+    @bkgd   = @find('input[name="bkgdsub"]')
     @sat    = @find('input[name="colorsat"] + .parameter')
   
   render: ->
@@ -48,6 +50,7 @@ class ControlView extends View
       @ranges.removeAttr('disabled')
     else
       @ranges.attr('disabled', 'disabled')
+    
     @trigger('change:band', band)
   
   setAlpha: (e) ->
@@ -69,12 +72,19 @@ class ControlView extends View
     band = e.target.name
     @[band].text("#{band}: #{val}")
     @[band].offset({top: e.target.offsetTop - 10, left: 401 * val / 2})
+    
     @trigger('change:scale', band, val)
+  
+  setBkgdSub: (e) =>
+    state = @bkgd.is(':checked')
+    
+    @trigger('change:bkgdsub', state)
   
   setColorSaturation: (e) =>
     val = e.target.value
     @sat.text("Sat: #{val}")
     @sat.offset({top: e.target.offsetTop - 10, left: 401 * val / 5})
+    
     @trigger('change:colorsat', val)
     
 module.exports = ControlView

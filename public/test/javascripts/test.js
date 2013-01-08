@@ -74,6 +74,45 @@
   globals.require.brunch = true;
 })();
 
+window.require.define({"test/collections/Layers_test": function(exports, require, module) {
+  var LayersCollection;
+
+  LayersCollection = require('collections/Layers');
+
+  describe('LayersCollection', function() {
+    return beforeEach(function() {
+      return this.collection = new LayersCollection();
+    });
+  });
+  
+}});
+
+window.require.define({"test/models/Layer_test": function(exports, require, module) {
+  var LayerModel;
+
+  LayerModel = require('models/Layer');
+
+  describe('LayerModel', function() {
+    return beforeEach(function() {
+      return this.model = new LayerModel();
+    });
+  });
+  
+}});
+
+window.require.define({"test/models/State_test": function(exports, require, module) {
+  var StateModel;
+
+  StateModel = require('models/State');
+
+  describe('StateModel', function() {
+    return beforeEach(function() {
+      return this.model = new StateModel();
+    });
+  });
+  
+}});
+
 window.require.define({"test/spec": function(exports, require, module) {
   
 
@@ -172,6 +211,9 @@ window.require.define({"test/views/webfits_test": function(exports, require, mod
   
 }});
 
+window.require('test/collections/Layers_test');
+window.require('test/models/Layer_test');
+window.require('test/models/State_test');
 window.require('test/views/DataSource_test');
 window.require('test/views/app_view_test');
 window.require('test/views/filter_test');
