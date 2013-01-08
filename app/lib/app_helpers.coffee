@@ -1,6 +1,4 @@
 (() ->
-  # Tell Swag where to look for partials
-  Swag.Config.partialsPath = '../views/templates/'
 
   # IIFE to avoid collisions with other variables
   (->
