@@ -147,7 +147,7 @@ class FitsView extends View
     if band is 'gri'
       @wfits.drawColor()
     else
-      @wfits.drawGrayScale(band)
+      @wfits.drawGrayscale(band)
   
   # Compute a percentile by computing rank and selecting on a sorted array
   getPercentile: (sorted, p) ->

@@ -11,6 +11,8 @@ class WebFitsCanvasApi extends WebFitsApi
     @sky = {'g': 0, 'r': 0, 'i': 0}
     @colorSat = 1.0
     
+    @drawColorDebounce = _.debounce(@drawColor, 100)
+    
   getContext: (canvas) ->
     # TODO: Flip Y axis without CSS
     canvas.style.webkitTransform = 'scaleY(-1)'
@@ -26,18 +28,18 @@ class WebFitsCanvasApi extends WebFitsApi
   
   setScale: (band, value) ->
     @scale[band] = value
-    @draw()
+    @drawColorDebounce()
   
   setMax: (band, value) ->
     @max[band] = value
     
   setAlpha: (value) ->
     @alpha = value
-    @drawColor()
+    @drawColorDebounce()
   
   setQ: (value) ->
     @Q = value
-    @drawColor()
+    @drawColorDebounce()
   
   setBkgdSub: (band, value) ->
     @sky[band] = value
@@ -47,7 +49,7 @@ class WebFitsCanvasApi extends WebFitsApi
     @colorSat = value
     @draw()
   
-  drawGrayScale: (band) =>
+  drawGrayscale: (band) =>
     
     # Get canvas data
     imgData = @ctx.getImageData(0, 0, @width, @height)
@@ -68,7 +70,7 @@ class WebFitsCanvasApi extends WebFitsApi
     @ctx.putImageData(imgData, 0, 0)
   
   drawColor: () =>
-    
+    console.log 'drawColor'
     # Get canvas data
     imgData = @ctx.getImageData(0, 0, @width, @height)
     arr = imgData.data

@@ -178,7 +178,7 @@ class WebFitsWebGlApi extends WebFitsApi
     @ctx.uniform1f(location, value)
     @ctx.drawArrays(@ctx.TRIANGLES, 0, 6)
   
-  drawGrayScale: (band) ->
+  drawGrayscale: (band) ->
     @ctx.useProgram(@program1)
     
     index = @textureIndices[band]
