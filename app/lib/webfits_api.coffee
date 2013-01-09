@@ -1,6 +1,9 @@
 
 class WebFitsApi
-  scales: {}
+  minimum: -2632.8103
+  maximum: 17321.828
+  width: 401
+  height: 401
   
   constructor: ->
     console.log 'WebFitsApi'

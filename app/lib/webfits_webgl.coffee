@@ -4,6 +4,12 @@ Shaders     = require 'lib/shaders'
 class WebFitsWebGlApi extends WebFitsApi
   
   algorithm: Shaders.lupton
+  textureIndices:
+    'u': 0
+    'g': 1
+    'r': 2
+    'i': 3
+    'z': 4
   
   # Code using this function must check if a context is returned
   getContext: (canvas) ->
@@ -17,6 +23,7 @@ class WebFitsWebGlApi extends WebFitsApi
       break if (context)
     
     return null unless context
+    @ctx = context
     
     # Check float extension support on GPU
     ext = @_getExtension(context)
@@ -44,14 +51,14 @@ class WebFitsWebGlApi extends WebFitsApi
       # Grab attribute and uniform locations
       positionLocation  = context.getAttribLocation(program, 'a_position')
       texCoordLocation  = context.getAttribLocation(program, 'a_textureCoord')
-      extremesLocation  = context.getUniformLocation(program, 'u_extremes')
+      extentLocation    = context.getUniformLocation(program, 'u_extent')
       offsetLocation    = context.getUniformLocation(program, 'u_offset')
       scaleLocation     = context.getUniformLocation(program, 'u_scale')
-    
+      
       # TODO: Using sample data CFHTLS 26.  Global min and max precomputed and hard coded here.
-      context.uniform2f(extremesLocation, -2632.8103, 17321.828)
-      context.uniform2f(offsetLocation, -401 / 2, -401 / 2)
-      context.uniform1f(scaleLocation, 2 / 401)
+      context.uniform2f(extentLocation, @minimum, @maximum)
+      context.uniform2f(offsetLocation, -@width / 2, -@height / 2)
+      context.uniform1f(scaleLocation, 2 / @width)
     
     # Create texture coordinate buffer
     texCoordBuffer = context.createBuffer()
@@ -63,16 +70,6 @@ class WebFitsWebGlApi extends WebFitsApi
     )
     context.enableVertexAttribArray(texCoordLocation)
     context.vertexAttribPointer(texCoordLocation, 2, context.FLOAT, false, 0, 0)
-    
-    # Create textures
-    for i in [0..2]
-      context.activeTexture(context["TEXTURE#{i}"])
-      texture = context.createTexture()
-      context.bindTexture(context.TEXTURE_2D, texture)
-      context.texParameteri(context.TEXTURE_2D, context.TEXTURE_WRAP_S, context.CLAMP_TO_EDGE)
-      context.texParameteri(context.TEXTURE_2D, context.TEXTURE_WRAP_T, context.CLAMP_TO_EDGE)
-      context.texParameteri(context.TEXTURE_2D, context.TEXTURE_MIN_FILTER, context.NEAREST)
-      context.texParameteri(context.TEXTURE_2D, context.TEXTURE_MAG_FILTER, context.NEAREST)
     
     buffer = context.createBuffer()
     context.bindBuffer(context.ARRAY_BUFFER, buffer)
@@ -122,71 +119,85 @@ class WebFitsWebGlApi extends WebFitsApi
   _setRectangle: (gl, x, y, width, height) ->
       [x1, x2] = [x, x + width]
       [y1, y2] = [y, y + height]
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([x1, y1, x2, y1, x1, y2, x1, y2, x2, y1, x2, y2]), gl.STATIC_DRAW)
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([x1, y1, x2, y1, x1, y2, x1, y2, x2, y1, x2, y2]), gl.STATIC_DRAW)  
   
+  loadTexture: (band, data) =>
+    index = @textureIndices[band]
+    
+    @ctx.activeTexture(@ctx["TEXTURE#{index}"])
+    texture = @ctx.createTexture()
+    @ctx.bindTexture(@ctx.TEXTURE_2D, texture)
+    @ctx.texParameteri(@ctx.TEXTURE_2D, @ctx.TEXTURE_WRAP_S, @ctx.CLAMP_TO_EDGE)
+    @ctx.texParameteri(@ctx.TEXTURE_2D, @ctx.TEXTURE_WRAP_T, @ctx.CLAMP_TO_EDGE)
+    @ctx.texParameteri(@ctx.TEXTURE_2D, @ctx.TEXTURE_MIN_FILTER, @ctx.NEAREST)
+    @ctx.texParameteri(@ctx.TEXTURE_2D, @ctx.TEXTURE_MAG_FILTER, @ctx.NEAREST)
+    @ctx.texImage2D(@ctx.TEXTURE_2D, 0, @ctx.LUMINANCE, @width, @height, 0, @ctx.LUMINANCE, @ctx.FLOAT, data)
   
   # Set scale for a channel in the color composite image
-  setScale: (gl, band, scale) ->
-    gl.useProgram(@program2)
+  setScale: (band, scale) ->
+    @ctx.useProgram(@program2)
     
-    location = gl.getUniformLocation(@program2, "u_#{band}scale")
-    gl.uniform1f(location, scale)
-    gl.drawArrays(gl.TRIANGLES, 0, 6)
+    location = @ctx.getUniformLocation(@program2, "u_#{band}scale")
+    @ctx.uniform1f(location, scale)
+    @ctx.drawArrays(@ctx.TRIANGLES, 0, 6)
     
-  setMax: (gl, band, max) ->
-    gl.useProgram(@program2)
+  setMax: (band, max) ->
+    @ctx.useProgram(@program2)
     
-    location = gl.getUniformLocation(@program2, "u_#{band}max")
-    gl.uniform1f(location, max)
+    location = @ctx.getUniformLocation(@program2, "u_#{band}max")
+    @ctx.uniform1f(location, max)
   
   # Set the alpha parameter for the Lupton algorithm
-  setAlpha: (gl, value) =>
-    gl.useProgram(@program2)
+  setAlpha: (value) =>
+    @ctx.useProgram(@program2)
     
-    location = gl.getUniformLocation(@program2, 'u_alpha')
-    gl.uniform1f(location, value)
-    gl.drawArrays(gl.TRIANGLES, 0, 6)
+    location = @ctx.getUniformLocation(@program2, 'u_alpha')
+    @ctx.uniform1f(location, value)
+    @ctx.drawArrays(@ctx.TRIANGLES, 0, 6)
   
   # Set the Q parameter for the Lupton algorithm
-  setQ: (gl, value) =>
-    gl.useProgram(@program2)
+  setQ: (value) =>
+    @ctx.useProgram(@program2)
     
-    location = gl.getUniformLocation(@program2, 'u_Q')
-    gl.uniform1f(location, value)
-    gl.drawArrays(gl.TRIANGLES, 0, 6)
+    location = @ctx.getUniformLocation(@program2, 'u_Q')
+    @ctx.uniform1f(location, value)
+    @ctx.drawArrays(@ctx.TRIANGLES, 0, 6)
   
-  setBkgdSub: (gl, band, value) =>
+  setBkgdSub: (band, value) =>
     console.warn 'TODO: Implement setBkgdSub for grayscale images'
-    gl.useProgram(@program2)
+    @ctx.useProgram(@program2)
     
-    location = gl.getUniformLocation(@program2, "u_#{band}sky")
-    gl.uniform1f(location, value)
-    gl.drawArrays(gl.TRIANGLES, 0, 6)
+    location = @ctx.getUniformLocation(@program2, "u_#{band}sky")
+    @ctx.uniform1f(location, value)
+    @ctx.drawArrays(gl.TRIANGLES, 0, 6)
   
-  setColorSaturation: (gl, value) =>
-    gl.useProgram(@program2)
+  setColorSaturation: (value) =>
+    @ctx.useProgram(@program2)
     
-    location = gl.getUniformLocation(@program2, 'u_colorsat')
-    gl.uniform1f(location, value)
-    gl.drawArrays(gl.TRIANGLES, 0, 6)
+    location = @ctx.getUniformLocation(@program2, 'u_colorsat')
+    @ctx.uniform1f(location, value)
+    @ctx.drawArrays(@ctx.TRIANGLES, 0, 6)
   
-  drawGrayScale: (gl, data) ->
-    gl.useProgram(@program1)
-    gl.activeTexture(gl.TEXTURE0)
+  drawGrayScale: (band) ->
+    @ctx.useProgram(@program1)
     
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, 401, 401, 0, gl.LUMINANCE, gl.FLOAT, data)
-    gl.drawArrays(gl.TRIANGLES, 0, 6)
+    index = @textureIndices[band]
+    @ctx.activeTexture(@ctx["TEXTURE#{index}"])
+    location = @ctx.getUniformLocation(@program1, "u_tex")
+    @ctx.uniform1i(location, index)
+    @ctx.drawArrays(@ctx.TRIANGLES, 0, 6)
   
   # Pass three arrays to three GPU textures
-  drawColor: (gl, arr) ->
-    gl.useProgram(@program2)
-    for i in [0..2]
-      gl.activeTexture(gl["TEXTURE#{i}"])
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, 401, 401, 0, gl.LUMINANCE, gl.FLOAT, arr[i])
-      location = gl.getUniformLocation(@program2, "u_tex#{i}")
-      gl.uniform1i(location, i)
+  drawColor: ->
+    @ctx.useProgram(@program2)
     
-    gl.drawArrays(gl.TRIANGLES, 0, 6)
+    for band in ['g', 'r', 'i']
+      index = @textureIndices[band]
+      @ctx.activeTexture(@ctx["TEXTURE#{index}"])
+      location = @ctx.getUniformLocation(@program2, "u_tex#{index}")
+      @ctx.uniform1i(location, index)
+    
+    @ctx.drawArrays(@ctx.TRIANGLES, 0, 6)
 
-  
+
 module.exports = WebFitsWebGlApi

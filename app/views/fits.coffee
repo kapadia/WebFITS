@@ -28,23 +28,20 @@ class FitsView extends View
     
     # NOTE: Dimension is currently hard coded
     canvas  = @wfits.setup(@el, 401, 401)
-    @ctx    = @wfits.getContext(canvas)
+    ctx     = @wfits.getContext(canvas)
     
     # Checking to make sure context initialize correctly
-    unless @ctx?
-      alert 'Something went wrong initiaizing a the context'
+    unless ctx?
+      alert 'Something went wrong initiaizing the context'
     
     # Initialize a collections for storing FITS images
     @collection = new Layers()
-    
-    # Set default parameters
-    @wfits.setAlpha(@ctx, 0.03)
-    @wfits.setQ(@ctx, 1)
   
   getApi: ->
     console.warn 'TODO: Make getApi asynchronous'
     
-    alert 'Sorry, update your browser' unless DataView?
+    unless DataView?
+      alert 'Sorry, your browser does not support features needed for this tool.'
     
     # Determine if WebGL is supported, otherwise fall back to canvas
     canvas  = document.createElement('canvas')
@@ -84,6 +81,10 @@ class FitsView extends View
           # Initialize a model and push to collection
           layer = new Layer({band: band, fits: fits, scale: scale})
           @collection.add(layer)
+          
+          # Load texture
+          @wfits.loadTexture(band, layer.getData())
+          
           d.resolve()
         xhrs.push(xhr)
     
@@ -95,6 +96,11 @@ class FitsView extends View
       .done( (e) =>
         @computeNormalizedScales()
         @getPercentiles()
+        
+        # Set default parameters
+        @wfits.setAlpha(0.03)
+        @wfits.setQ(1)
+        
         @trigger "fits:ready"
       )
   
@@ -133,21 +139,15 @@ class FitsView extends View
       
       # Send to web fits object
       @trigger 'fits:scale', band, nscale
-      @wfits.setScale @ctx, band, nscale
+      @wfits.setScale band, nscale
     )
   
   # Responds to user selection of band.  Sends image(s) to web fits context.
   getBand: (band) =>
     if band is 'gri'
-      arr = []
-      gri = @collection.getColorLayers()
-      _.each(gri, (d) ->
-        arr.push(d.getData())
-      )
-      @wfits.drawColor(@ctx, arr)
+      @wfits.drawColor()
     else
-      data = @collection.where({band: band})[0].getData()
-      @wfits.drawGrayScale(@ctx, data, band)
+      @wfits.drawGrayScale(band)
   
   # Compute a percentile by computing rank and selecting on a sorted array
   getPercentile: (sorted, p) ->
@@ -175,13 +175,13 @@ class FitsView extends View
     )
   
   updateAlpha: (value) =>
-    @wfits.setAlpha(@ctx, value)
+    @wfits.setAlpha(value)
   
   updateQ: (value) =>
-    @wfits.setQ(@ctx, value)
+    @wfits.setQ(value)
   
   updateScale: (band, value) =>
-    @wfits.setScale(@ctx, band, value)
+    @wfits.setScale(band, value)
   
   updateBkgdSub: (state) =>
     gri = @collection.getColorLayers()
@@ -189,15 +189,15 @@ class FitsView extends View
     if state
       # Send sky level to GPU
       _.each(gri, (d) =>
-        @wfits.setBkgdSub(@ctx, d.get('band'), d.get('sky'))
+        @wfits.setBkgdSub(d.get('band'), d.get('sky'))
       )
     else
       # Send null to GPU
       _.each(gri, (d) =>
-        @wfits.setBkgdSub(@ctx, d.get('band'), 0)
+        @wfits.setBkgdSub(d.get('band'), 0)
       )
   
   updateColorSaturation: (value) =>
-    @wfits.setColorSaturation(@ctx, value)
+    @wfits.setColorSaturation(value)
   
 module.exports = FitsView
