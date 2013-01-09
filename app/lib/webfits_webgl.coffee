@@ -147,6 +147,17 @@ class WebFitsWebGlApi extends WebFitsApi
     location = @ctx.getUniformLocation(@program2, "u_#{band}max")
     @ctx.uniform1f(location, max)
   
+  # Set the minimum and maximum pixels for scaling grayscale images
+  setExtent: (min, max) ->
+    @ctx.useProgram(@program1)
+    
+    min = (@MAXIMUM - @MINIMUM) * min / 1000 + @MINIMUM
+    max = (@MAXIMUM - @MINIMUM) * max / 1000 + @MINIMUM
+    
+    location = @ctx.getUniformLocation(@program1, 'u_extent')
+    @ctx.uniform2f(location, min, max)
+    @ctx.drawArrays(@ctx.TRIANGLES, 0, 6)
+  
   # Set the alpha parameter for the Lupton algorithm
   setAlpha: (value) =>
     @ctx.useProgram(@program2)

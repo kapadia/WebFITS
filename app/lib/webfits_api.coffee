@@ -1,7 +1,8 @@
 
 class WebFitsApi
-  minimum: -2632.8103
-  maximum: 17321.828
+  MINIMUM: -2632.8103
+  MAXIMUM: 17321.828
+  
   width: 401
   height: 401
   

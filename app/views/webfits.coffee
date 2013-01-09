@@ -20,6 +20,7 @@ class WebFitsView extends View
     @fits.on('fits:scale', @onScaleCompute)
     
     @control.on('change:band', @onBandChange)
+    @control.on('change:extent', @onExtentChange)
     @control.on('change:alpha', @onAlphaChange)
     @control.on('change:Q', @onQChange)
     @control.on('change:scale', @onScaleChange)
@@ -37,7 +38,10 @@ class WebFitsView extends View
   
   onBandChange: (band) =>
     @fits.getBand(band)
-
+  
+  onExtentChange: (min, max) =>
+    @fits.updateExtent(min, max)
+    
   onAlphaChange: (value) =>
     @fits.updateAlpha(value)
 

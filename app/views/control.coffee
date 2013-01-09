@@ -11,6 +11,7 @@ class ControlView extends View
     'change input.scale'            : 'setScale'
     'change input[name="colorsat"]' : 'setColorSaturation'
     'change input[name="bkgdsub"]'  : 'setBkgdSub'
+    'change input.extent'           : 'setExtent'
   
   initialize: =>
     @render()
@@ -56,6 +57,12 @@ class ControlView extends View
       @fields.filter('.color').hide()
       @fields.filter('.grayscale').show()
     @trigger('change:band', band)
+  
+  setExtent: (e) ->
+    min = @find('input[name="min"]').val()
+    max = @find('input[name="max"]').val()
+    
+    @trigger('change:extent', min, max)
   
   setAlpha: (e) ->
     val = e.target.value

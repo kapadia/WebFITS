@@ -181,6 +181,9 @@ class FitsView extends View
       d.set('max', max)
     )
   
+  updateExtent: (min, max) =>
+    @wfits.setExtent(min, max)
+  
   updateAlpha: (value) =>
     @wfits.setAlpha(value)
   

@@ -1,6 +1,8 @@
 WebFitsApi = require 'lib/webfits_api'
 
 class WebFitsCanvasApi extends WebFitsApi
+  minimum: -2632.8103
+  maximum: 17321.828
   
   constructor: ->
     super
@@ -11,7 +13,10 @@ class WebFitsCanvasApi extends WebFitsApi
     @sky = {'g': 0, 'r': 0, 'i': 0}
     @colorSat = 1.0
     
-    @drawColorDebounce = _.debounce(@drawColor2, 150)
+    @drawColorDebounce      = _.debounce(@drawColor2, 150)
+    @drawGrayscaleDebounce  = _.debounce( =>
+      @drawGrayscale(@currentBand)
+    , 150)
     
   getContext: (canvas) ->
     # TODO: Flip Y axis without CSS
@@ -32,7 +37,12 @@ class WebFitsCanvasApi extends WebFitsApi
   
   setMax: (band, value) ->
     @max[band] = value
-    
+  
+  setExtent: (min, max) ->
+    @minimum = (@MAXIMUM - @MINIMUM) * min / 1000 + @MINIMUM
+    @maximum = (@MAXIMUM - @MINIMUM) * max / 1000 + @MINIMUM
+    @drawGrayscaleDebounce()
+  
   setAlpha: (value) ->
     @alpha = value
     @drawColorDebounce()
@@ -50,6 +60,7 @@ class WebFitsCanvasApi extends WebFitsApi
     @draw()
   
   drawGrayscale: (band) =>
+    @currentBand = band
     
     # Get canvas data
     imgData = @ctx.getImageData(0, 0, @width, @height)
