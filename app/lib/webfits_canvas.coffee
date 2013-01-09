@@ -75,35 +75,50 @@ class WebFitsCanvasApi extends WebFitsApi
   
   drawColor: (ctx, data) =>
     # Splat the data for easier reference
-    [R, G, B] = data
+    [B, G, R] = data
     
     # Get canvas data
     imgData = ctx.getImageData(0, 0, @width, @height)
     arr = imgData.data
     
-    length = arr.length
-    while length -= 4
-      index = length / 4
+    for i in [0..arr.length - 1] by 4
+      index = i / 4
+      
       r = (R[index] - @sky['i']) * @scale['i']
       g = (G[index] - @sky['r']) * @scale['r']
       b = (B[index] - @sky['g']) * @scale['g']
       
-      # Compute the total intensity and stretch factor
       I = r + g + b + 1e-10
       factor = @arcsinh(@alpha * @Q * I) / (@Q * I)
       
-      arr[length + 0] = 255 * @clamp(r * factor)
-      arr[length + 1] = 255 * @clamp(g * factor)
-      arr[length + 2] = 255 * @clamp(b * factor)
-      arr[length + 3] = 255
+      arr[i + 0] = 255 * r * factor
+      arr[i + 1] = 255 * g * factor
+      arr[i + 2] = 255 * b * factor
+      arr[i + 3] = 255
+    
+    # for i in [0..100] by 4
+    #   console.log i, arr[i]
+    
+    # length = arr.length
+    # while length -= 4
+    #   index = length / 4
+    #   r = (R[index] - @sky['i']) * @scale['i']
+    #   g = (G[index] - @sky['r']) * @scale['r']
+    #   b = (B[index] - @sky['g']) * @scale['g']
+    #   
+    #   # Compute the total intensity and stretch factor
+    #   I = r + g + b + 1e-10
+    #   factor = @arcsinh(@alpha * @Q * I) / (@Q * I)
+    #   
+    #   arr[length + 0] = 255 * @clamp(r * factor)
+    #   arr[length + 1] = 255 * @clamp(g * factor)
+    #   arr[length + 2] = 255 * @clamp(b * factor)
+    #   arr[length + 3] = 255
       
     imgData.data = arr
     ctx.putImageData(imgData, 0, 0)
     
   arcsinh: (value) ->
     return Math.log(value + Math.sqrt(1 + value * value))
-  
-  clamp: (value) ->
-    return Math.max(0, Math.min(value, 1))
     
 module.exports = WebFitsCanvasApi
