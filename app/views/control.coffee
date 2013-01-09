@@ -19,7 +19,7 @@ class ControlView extends View
     @find('*').prop('disabled', 'disabled')
     
     # Cache DOM elements
-    @ranges = @find('input[type="range"]')
+    @fields = @find('fieldset')
     @alpha  = @find('input[name="alpha"] + .parameter')
     @Q      = @find('input[name="Q"] + .parameter')
     @g      = @find('input[name="g"] + .parameter')
@@ -39,6 +39,7 @@ class ControlView extends View
     @find('.spinner').removeClass('active')
     @find('*').removeProp('disabled')
     @find('label[for="gri"]').click()
+    @find('.parameters').show()
     @setBand()
   
   setComputedScale: (band, value) ->
@@ -47,10 +48,13 @@ class ControlView extends View
   setBand: ->
     band = @find('input[name="band"]:checked + label')[0].dataset.band
     if band is 'gri'
-      @ranges.removeAttr('disabled')
+      # Hide grayscale tools and show color tools
+      @fields.filter('.color').show()
+      @fields.filter('.grayscale').hide()
     else
-      @ranges.attr('disabled', 'disabled')
-    
+      # Hide color tools and show grayscale tools
+      @fields.filter('.color').hide()
+      @fields.filter('.grayscale').show()
     @trigger('change:band', band)
   
   setAlpha: (e) ->

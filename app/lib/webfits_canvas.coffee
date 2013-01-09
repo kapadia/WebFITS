@@ -11,7 +11,7 @@ class WebFitsCanvasApi extends WebFitsApi
     @sky = {'g': 0, 'r': 0, 'i': 0}
     @colorSat = 1.0
     
-    @drawColorDebounce = _.debounce(@drawColor, 150)
+    @drawColorDebounce = _.debounce(@drawColor2, 150)
     
   getContext: (canvas) ->
     # TODO: Flip Y axis without CSS
@@ -69,8 +69,43 @@ class WebFitsCanvasApi extends WebFitsApi
     imgData.data = arr
     @ctx.putImageData(imgData, 0, 0)
   
-  drawColor: () =>
-    console.log 'drawColor'
+  drawColor: =>
+    @drawColor2()
+  
+  # TODO: Run performance test comparing drawColor1 and drawColor2
+  drawColor1: () =>
+    
+    # Get canvas data
+    imgData = @ctx.getImageData(0, 0, @width, @height)
+    length = imgData.data.length
+    
+    # Instantiate an array buffer and typed arrays
+    buffer  = new ArrayBuffer(length)
+    buffer8 = new Uint8ClampedArray(buffer)
+    data    = new Uint32Array(buffer)
+    
+    index = @width * @height
+    while index--
+      # Background subtract and scale the pixels
+      r = (@i[index] - @sky['i']) * @scale['i']
+      g = (@r[index] - @sky['r']) * @scale['r']
+      b = (@g[index] - @sky['g']) * @scale['g']
+      
+      # Compute total intensity and stretch factor
+      I = r + g + b + 1e-10
+      factor = @arcsinh(@alpha * @Q * I) / (@Q * I)
+      
+      r = 255 * @clamp(r * factor)
+      g = 255 * @clamp(g * factor)
+      b = 255 * @clamp(b * factor)
+      
+      data[index] = (255 << 24) | (b << 16) | (g << 8) | r
+      
+    imgData.data.set(buffer8)
+    @ctx.putImageData(imgData, 0, 0)
+  
+  drawColor2: ->
+    
     # Get canvas data
     imgData = @ctx.getImageData(0, 0, @width, @height)
     arr = imgData.data
@@ -82,7 +117,7 @@ class WebFitsCanvasApi extends WebFitsApi
       g = (@r[index] - @sky['r']) * @scale['r']
       b = (@g[index] - @sky['g']) * @scale['g']
       
-      # Compute the total intensity and stretch factor
+      # Compute total intensity and stretch factor
       I = r + g + b + 1e-10
       factor = @arcsinh(@alpha * @Q * I) / (@Q * I)
       
@@ -97,4 +132,8 @@ class WebFitsCanvasApi extends WebFitsApi
   arcsinh: (value) ->
     return Math.log(value + Math.sqrt(1 + value * value))
     
+  clamp: (value) ->
+    return Math.max(Math.min(1, value), 0)
+
+
 module.exports = WebFitsCanvasApi
