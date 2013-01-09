@@ -38,7 +38,7 @@ class ControlView extends View
   ready: ->
     @find('.spinner').removeClass('active')
     @find('*').removeProp('disabled')
-    @find('label[for="r"]').click()
+    @find('label[for="gri"]').click()
     @setBand()
   
   setComputedScale: (band, value) ->

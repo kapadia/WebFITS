@@ -11,7 +11,7 @@ class WebFitsCanvasApi extends WebFitsApi
     @sky = {'g': 0, 'r': 0, 'i': 0}
     @colorSat = 1.0
     
-    @drawColorDebounce = _.debounce(@drawColor, 100)
+    @drawColorDebounce = _.debounce(@drawColor, 150)
     
   getContext: (canvas) ->
     # TODO: Flip Y axis without CSS

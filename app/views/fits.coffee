@@ -24,6 +24,10 @@ class FitsView extends View
     'z.MP9801': 9000
   
   initialize: =>
+    
+    # Hide the root element
+    @el.style.display = 'none'
+    
     @getApi()
     
     # NOTE: Dimension is currently hard coded
@@ -100,6 +104,9 @@ class FitsView extends View
         # Set default parameters
         @wfits.setAlpha(0.03)
         @wfits.setQ(1)
+        
+        # Show the root element
+        @el.style.display = 'block'
         
         @trigger "fits:ready"
       )
