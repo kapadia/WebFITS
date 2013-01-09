@@ -180,7 +180,7 @@ class WebFitsWebGlApi extends WebFitsApi
     
     location = @ctx.getUniformLocation(@program2, "u_#{band}sky")
     @ctx.uniform1f(location, value)
-    @ctx.drawArrays(gl.TRIANGLES, 0, 6)
+    @ctx.drawArrays(@ctx.TRIANGLES, 0, 6)
   
   setColorSaturation: (value) =>
     @ctx.useProgram(@program2)
