@@ -64,7 +64,7 @@ class FitsView extends View
     xhrs = []
     for band in @bands
       do (band) =>
-        fname = "#{id}_#{band}_sci.fits"
+        fname = "#{id}_#{band}_sci.fits.fz"
         fpath = "data/#{fname}"
         
         # Initialize deferred object
