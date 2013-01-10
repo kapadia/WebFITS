@@ -9,7 +9,6 @@ class DataSourceView extends View
     'click li.dataset'  : 'selectDataset'
   
   initialize: ->
-    console.log 'DataSourceView'
     @render()
     
   render: ->

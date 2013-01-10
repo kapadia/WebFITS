@@ -16,6 +16,10 @@ class ControlView extends View
   initialize: =>
     @render()
     
+    # Load shim if on Firefox
+    if $.browser.mozilla
+      $.getScript('javascripts/html5slider.js', => console.log 'done')
+    
     # Disable all DIVs
     @find('*').prop('disabled', 'disabled')
     

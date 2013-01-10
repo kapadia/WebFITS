@@ -31,8 +31,9 @@ class FitsView extends View
     @getApi()
     
     @on 'webfits-ready', =>
-      # NOTE: Dimensions are hard coded
+      # NOTE: Dimensions and global extent are hard coded
       @wfits = new astro.WebFITS.Api(@el, 401, 401)
+      @wfits.setGlobalExtent(-2632.8103, 17321.828)
       ctx = @wfits.getContext()
       
       unless ctx?
