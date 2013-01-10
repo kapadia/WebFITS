@@ -30,19 +30,20 @@ class FitsView extends View
     
     @getApi()
     
-    # NOTE: Dimension is currently hard coded
-    canvas  = @wfits.setup(@el, 401, 401)
-    ctx     = @wfits.getContext(canvas)
-    
-    # Checking to make sure context initialize correctly
-    unless ctx?
-      alert 'Something went wrong initiaizing the context'
+    @on 'webfits-ready', =>
+      # NOTE: Dimensions are hard coded
+      @wfits = new astro.WebFITS.Api(@el, 401, 401)
+      ctx = @wfits.getContext()
+      
+      unless ctx?
+        alert 'Something went wrong initializing the context'
+      
+      @off 'webfits-ready'
     
     # Initialize a collections for storing FITS images
     @collection = new Layers()
   
   getApi: ->
-    console.warn 'TODO: Make getApi asynchronous'
     
     unless DataView?
       alert 'Sorry, your browser does not support features needed for this tool.'
@@ -52,9 +53,10 @@ class FitsView extends View
     context = canvas.getContext('webgl')
     context = canvas.getContext('experimental-webgl') unless context?
     
-    # TODO: Load correct lib asynchronously
-    WebFitsApi = if context? then require('lib/webfits_webgl') else require('lib/webfits_canvas')
-    @wfits = new WebFitsApi()
+    # Load appropriate webfits library asynchronously
+    lib = if context? then 'gl' else 'canvas'
+    url = "javascripts/webfits-#{lib}.js"
+    $.getScript(url, => @trigger 'webfits-ready')
     
   requestData: (id) =>
     FITS = astro.FITS
