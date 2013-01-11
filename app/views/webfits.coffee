@@ -4,7 +4,7 @@ ControlView = require 'views/Control'
 FitsView    = require 'views/fits'
 
 class WebFitsView extends View
-  el: 'body.application'
+  el: '.container'
   template: require 'views/templates/webfits'
   className: 'webfits'
   
@@ -13,7 +13,7 @@ class WebFitsView extends View
     @render()
     
     @control  = new ControlView({el: @find('.controls')})
-    @fits     = new FitsView({el: @find('.fits')})
+    @fits     = new FitsView({el: @find('.viewer')})
     
     # Bind events
     @fits.on('fits:ready', @onFitsReady)
@@ -25,7 +25,6 @@ class WebFitsView extends View
     @control.on('change:Q', @onQChange)
     @control.on('change:scale', @onScaleChange)
     @control.on('change:bkgdsub', @onBkgdSubChange)
-    @control.on('change:colorsat', @onSaturationChange)
   
   render: ->
     @$el.append @template()
@@ -53,9 +52,6 @@ class WebFitsView extends View
   
   onBkgdSubChange: (value) =>
     @fits.updateBkgdSub(value)
-  
-  onSaturationChange: (value) =>
-    @fits.updateColorSaturation(value)
   
   setDataset: (value) =>
     @control.startAjax()

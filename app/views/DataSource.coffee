@@ -1,7 +1,7 @@
 View = require '../lib/view'
 
 class DataSourceView extends View
-  el: 'body.application'
+  el: '.container'
   template: require 'views/templates/datasource'
   className: 'DataSource'
   

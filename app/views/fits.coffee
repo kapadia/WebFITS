@@ -5,9 +5,14 @@ Layers  = require '../collections/Layers'
 
 
 class FitsView extends View
-  className: 'fits'
+  className: 'viewer'
   
   bands:  ['u', 'g', 'r', 'i', 'z']
+  
+  width: 401
+  height: 401
+  surveyMinPixel: -2632.8103
+  surveyMaxPixel: 17321.828
   
   # Percentiles for sky and max levels
   skyp: 0.5
@@ -25,15 +30,15 @@ class FitsView extends View
   
   initialize: =>
     
-    # Hide the root element
-    @el.style.display = 'none'
+    # # Hide the root element
+    # @el.style.display = 'none'
     
     @getApi()
     
     @on 'webfits-ready', =>
       # NOTE: Dimensions and global extent are hard coded
-      @wfits = new astro.WebFITS.Api(@el, 401, 401)
-      @wfits.setGlobalExtent(-2632.8103, 17321.828)
+      @wfits = new astro.WebFITS.Api(@el, @width, @height)
+      @wfits.setGlobalExtent(@surveyMinPixel, @surveyMaxPixel)
       ctx = @wfits.getContext()
       
       unless ctx?
@@ -108,8 +113,8 @@ class FitsView extends View
         @wfits.setAlpha(0.03)
         @wfits.setQ(1)
         
-        # Show the root element
-        @el.style.display = 'block'
+        # # Show the root element
+        # @el.style.display = 'inline-block'
         
         @trigger "fits:ready"
       )
@@ -209,8 +214,6 @@ class FitsView extends View
       _.each(gri, (d) =>
         @wfits.setBkgdSub(d.get('band'), 0)
       )
-  
-  updateColorSaturation: (value) =>
-    @wfits.setColorSaturation(value)
-  
+
+
 module.exports = FitsView

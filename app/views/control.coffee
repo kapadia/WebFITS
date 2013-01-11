@@ -9,7 +9,6 @@ class ControlView extends View
     'change input[name="alpha"]'    : 'setAlpha'
     'change input[name="Q"]'        : 'setQ'
     'change input.scale'            : 'setScale'
-    'change input[name="colorsat"]' : 'setColorSaturation'
     'change input[name="bkgdsub"]'  : 'setBkgdSub'
     'change input.extent'           : 'setExtent'
   
@@ -18,20 +17,19 @@ class ControlView extends View
     
     # Load shim if on Firefox
     if $.browser.mozilla
-      $.getScript('javascripts/html5slider.js', => console.log 'done')
+      $.getScript('javascripts/html5slider.js')
     
     # Disable all DIVs
     @find('*').prop('disabled', 'disabled')
     
     # Cache DOM elements
-    @fields = @find('fieldset')
     @alpha  = @find('input[name="alpha"] + .parameter')
     @Q      = @find('input[name="Q"] + .parameter')
     @g      = @find('input[name="g"] + .parameter')
     @r      = @find('input[name="r"] + .parameter')
     @i      = @find('input[name="i"] + .parameter')
     @bkgd   = @find('input[name="bkgdsub"]')
-    @sat    = @find('input[name="colorsat"] + .parameter')
+    @params = @find('.parameters')
   
   render: ->
     @$el.append @template()
@@ -54,12 +52,12 @@ class ControlView extends View
     band = @find('input[name="band"]:checked + label')[0].dataset.band
     if band is 'gri'
       # Hide grayscale tools and show color tools
-      @fields.filter('.color').show()
-      @fields.filter('.grayscale').hide()
+      @params.filter('.color').show()
+      @params.filter('.grayscale').hide()
     else
       # Hide color tools and show grayscale tools
-      @fields.filter('.color').hide()
-      @fields.filter('.grayscale').show()
+      @params.filter('.color').hide()
+      @params.filter('.grayscale').show()
     @trigger('change:band', band)
   
   setExtent: (e) ->
@@ -94,12 +92,6 @@ class ControlView extends View
     state = @bkgd.is(':checked')
     
     @trigger('change:bkgdsub', state)
-  
-  setColorSaturation: (e) =>
-    val = e.target.value
-    @sat.text("Sat: #{val}")
-    @sat.offset({top: e.target.offsetTop - 10, left: 401 * val / 5})
-    
-    @trigger('change:colorsat', val)
-    
+
+
 module.exports = ControlView

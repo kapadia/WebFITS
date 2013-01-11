@@ -21,7 +21,6 @@
       this.width = width;
       this.height = height;
       this.canvas = document.createElement('canvas');
-      this.canvas.setAttribute('class', 'webfits');
       this.canvas.setAttribute('width', this.width);
       this.canvas.setAttribute('height', this.height);
       elem.appendChild(this.canvas);
@@ -53,7 +52,8 @@
 
       this.loadTexture = __bind(this.loadTexture, this);
 
-      var _this = this;
+      var debounceRate,
+        _this = this;
       Api.__super__.constructor.apply(this, arguments);
       this.scale = {};
       this.max = {};
@@ -65,10 +65,11 @@
         'i': 0
       };
       this.colorSat = 1.0;
-      this.drawColorDebounce = _.debounce(this.drawColor2, 150);
+      debounceRate = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? 150 : 50;
+      this.drawColorDebounce = _.debounce(this.drawColor2, debounceRate);
       this.drawGrayscaleDebounce = _.debounce(function() {
         return _this.drawGrayscale(_this.currentBand);
-      }, 150);
+      }, debounceRate);
     }
 
     Api.prototype.getContext = function() {
