@@ -93,5 +93,11 @@ class ControlView extends View
     
     @trigger('change:bkgdsub', state)
 
+  # Methods for keeping UI synchronized with webfits object
+  updateAlpha: (value) ->
+    @find("input[name='alpha']").val(value)
+  
+  updateQ: (value) ->
+    @find("input[name='Q']").val(value)
 
 module.exports = ControlView

@@ -18,6 +18,8 @@ class WebFitsView extends View
     # Bind events
     @fits.on('fits:ready', @onFitsReady)
     @fits.on('fits:scale', @onScaleCompute)
+    @fits.on('fits:alpha', @updateAlpha)
+    @fits.on('fits:Q', @updateQ)
     
     @control.on('change:band', @onBandChange)
     @control.on('change:extent', @onExtentChange)
@@ -56,5 +58,11 @@ class WebFitsView extends View
   setDataset: (value) =>
     @control.startAjax()
     @fits.requestData(value)
+    
+  updateAlpha: (value) =>
+    @control.updateAlpha(value)
+  
+  updateQ: (value) =>
+    @control.updateQ(value)
 
 module.exports = WebFitsView

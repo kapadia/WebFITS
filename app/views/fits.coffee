@@ -110,8 +110,12 @@ class FitsView extends View
         @getPercentiles()
         
         # Set default parameters
+        @trigger 'fits:alpha', 0.03
+        @trigger 'fits:Q', 1
+        
         @wfits.setAlpha(0.03)
         @wfits.setQ(1)
+        @wfits.setupMouseInteraction()
         
         # # Show the root element
         # @el.style.display = 'inline-block'
@@ -149,7 +153,7 @@ class FitsView extends View
       band = d.get('band')
       
       # Compute and set normalized scale
-      nscale = d.get('scale') / avg
+      nscale = d.get('scale') / avg or 1
       d.set('nscale', nscale)
       
       # Send to web fits object
@@ -159,10 +163,8 @@ class FitsView extends View
   
   # Responds to user selection of band.  Sends image(s) to web fits context.
   getBand: (band) =>
-    if band is 'gri'
-      @wfits.drawColor()
-    else
-      @wfits.drawGrayscale(band)
+    fn = if band is 'gri' then 'drawColor' else 'drawGrayscale'
+    @wfits[fn](band)
   
   # Compute a percentile by computing rank and selecting on a sorted array
   getPercentile: (sorted, p) ->
