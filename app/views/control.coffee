@@ -9,7 +9,6 @@ class ControlView extends View
     'change input[name="alpha"]'    : 'setAlpha'
     'change input[name="Q"]'        : 'setQ'
     'change input.scale'            : 'setScale'
-    'change input[name="bkgdsub"]'  : 'setBkgdSub'
     'change input.extent'           : 'setExtent'
   
   initialize: =>
@@ -28,7 +27,6 @@ class ControlView extends View
     @g      = @find('input[name="g"] + .parameter')
     @r      = @find('input[name="r"] + .parameter')
     @i      = @find('input[name="i"] + .parameter')
-    @bkgd   = @find('input[name="bkgdsub"]')
     @params = @find('.parameters')
   
   render: ->
@@ -87,11 +85,6 @@ class ControlView extends View
     @[band].offset({top: e.target.offsetTop - 10, left: 401 * val / 2})
     
     @trigger('change:scale', band, val)
-  
-  setBkgdSub: (e) =>
-    state = @bkgd.is(':checked')
-    
-    @trigger('change:bkgdsub', state)
 
   # Methods for keeping UI synchronized with webfits object
   updateAlpha: (value) ->

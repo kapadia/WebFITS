@@ -14,9 +14,9 @@ class FitsView extends View
   surveyMinPixel: -2632.8103
   surveyMaxPixel: 17321.828
   
-  # Percentiles for sky and max levels
-  skyp: 0.5
-  maxp: 0.995
+  # Default parameter values
+  defaultAlpha: 0.03
+  defaultQ: 1
   
   # Look up table for filter to wavelength conversion (CFHTLS specific)
   # CFHT MegaCam (from http://www.cfht.hawaii.edu/Instruments/Imaging/Megacam/specsinformation.html)
@@ -83,6 +83,7 @@ class FitsView extends View
         xhr.open('GET', fpath)
         xhr.responseType = 'arraybuffer'
         xhr.onload = (e) =>
+          # Initialize FITS object and read image data
           fits = new FITS.File(xhr.response)
           fits.getDataUnit().getFrame()
           hdu = fits.getHDU()
@@ -107,14 +108,13 @@ class FitsView extends View
     $.when.apply(this, dfs)
       .done( (e) =>
         @computeNormalizedScales()
-        @getPercentiles()
         
         # Set default parameters
-        @trigger 'fits:alpha', 0.03
-        @trigger 'fits:Q', 1
+        @trigger 'fits:alpha', @defaultAlpha
+        @trigger 'fits:Q', @defaultQ
         
-        @wfits.setAlpha(0.03)
-        @wfits.setQ(1)
+        @wfits.setAlpha(@defaultAlpha)
+        @wfits.setQ(@defaultQ)
         @wfits.setupMouseInteraction()
         
         # # Show the root element
@@ -161,35 +161,43 @@ class FitsView extends View
       @wfits.setScale band, nscale
     )
   
+  computeExtent: (data) ->
+    min = max = data[0]
+    length = data.length
+    i = 1
+    while i < length
+      value = data[i]
+      if value < min
+        min = value
+      else if value > max
+        max = value
+      i++
+    return [min, max]
+  
   # Responds to user selection of band.  Sends image(s) to web fits context.
   getBand: (band) =>
     fn = if band is 'gri' then 'drawColor' else 'drawGrayscale'
-    @wfits[fn](band)
-  
-  # Compute a percentile by computing rank and selecting on a sorted array
-  getPercentile: (sorted, p) ->
-    rank = Math.round(p * sorted.length + 0.5)
-    return sorted[rank]
-  
-  # Generic call for various percentiles needed to render image(s)
-  getPercentiles: =>
-    gri = @collection.getColorLayers()
     
-    _.each(gri, (d) =>
-      data = d.getData()
-      
-      # Create a deep copy of the array for sort
-      sorted = new Float32Array(data)
-      sorted = radixsort()(sorted)
-      
-      # Get sky and max level
-      sky = @getPercentile(sorted, @skyp)
-      max = @getPercentile(sorted, @maxp)
-      
-      # Store on model
-      d.set('sky', sky)
-      d.set('max', max)
-    )
+    if band is 'gri'
+      fn = 'drawColor'
+    else
+      fn = 'drawGrayscale'
+      unless @collection.hasExtent
+        @collection.each( (l) =>
+          [min, max] = @computeExtent(l.getData())
+          band = l.get('band')
+          l.set('minimum', min)
+          l.set('maximum', max)
+        )
+        @collection.hasExtent = true
+        mins = @collection.map( (l) -> return l.get('minimum'))
+        maxs = @collection.map( (l) -> return l.get('maximum'))
+        globalMin = Math.min.apply(Math, mins)
+        globalMax = Math.max.apply(Math, maxs)
+        @wfits.setGlobalExtent(globalMin, globalMax)
+    
+    # Call draw function
+    @wfits[fn](band)
   
   updateExtent: (min, max) =>
     @wfits.setExtent(min, max)
@@ -202,20 +210,6 @@ class FitsView extends View
   
   updateScale: (band, value) =>
     @wfits.setScale(band, value)
-  
-  updateBkgdSub: (state) =>
-    gri = @collection.getColorLayers()
-    
-    if state
-      # Send sky level to GPU
-      _.each(gri, (d) =>
-        @wfits.setBkgdSub(d.get('band'), d.get('sky'))
-      )
-    else
-      # Send null to GPU
-      _.each(gri, (d) =>
-        @wfits.setBkgdSub(d.get('band'), 0)
-      )
 
 
 module.exports = FitsView

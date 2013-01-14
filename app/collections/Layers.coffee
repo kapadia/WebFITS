@@ -2,6 +2,11 @@
 # Collection of layers where each layer corresponds to a FITS image
 class LayersCollection extends Backbone.Collection
   model: require 'models/Layer'
+  hasExtent: false
+  
+  reset: =>
+    super
+    @hasExtent = false
   
   getColorLayers: ->
     layers = []
