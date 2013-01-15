@@ -26,6 +26,7 @@ class WebFitsView extends View
     @control.on('change:alpha', @onAlphaChange)
     @control.on('change:Q', @onQChange)
     @control.on('change:scale', @onScaleChange)
+    @control.on('change:stretch', @onStretchChange)
   
   render: ->
     @$el.append @template()
@@ -37,7 +38,7 @@ class WebFitsView extends View
     @control.setComputedScale(band, value)
   
   onBandChange: (band) =>
-    @fits.getBand(band)
+    @fits.updateBand(band)
   
   onExtentChange: (min, max) =>
     @fits.updateExtent(min, max)
@@ -50,6 +51,9 @@ class WebFitsView extends View
   
   onScaleChange: (band, value) =>
     @fits.updateScale(band, value)
+  
+  onStretchChange: (value) =>
+    @fits.updateStretch(value)
   
   setDataset: (value) =>
     @control.startAjax()

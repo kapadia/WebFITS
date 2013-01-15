@@ -10,6 +10,7 @@ class ControlView extends View
     'change input[name="Q"]'        : 'setQ'
     'change input.scale'            : 'setScale'
     'change input.extent'           : 'setExtent'
+    'click input[name="stretch"]'   : 'setStretch'
   
   initialize: =>
     @render()
@@ -29,18 +30,19 @@ class ControlView extends View
     @i      = @find('input[name="i"] + .parameter')
     @params = @find('.parameters')
   
-  render: ->
-    @$el.append @template()
-  
-  startAjax: ->
-    @find('.spinner').addClass('active')
+  render: -> @$el.append @template()
+  startAjax: -> @find('.spinner').addClass('active')
   
   # Ready is called when all FITS images have been transferred.
   ready: ->
+    # Stop the spinner and enable parameters
     @find('.spinner').removeClass('active')
     @find('*').removeProp('disabled')
+    
+    # Set default states for buttons (these do not fire events)
     @find('label[for="gri"]').click()
-    @find('.parameters').show()
+    @find('label[for="linear"]').click()
+    
     @setBand()
   
   setComputedScale: (band, value) ->
@@ -85,6 +87,10 @@ class ControlView extends View
     @[band].offset({top: e.target.offsetTop - 10, left: 401 * val / 2})
     
     @trigger('change:scale', band, val)
+
+  setStretch: (e) =>
+    stretch = @find('input[name="stretch"]:checked + label')[0].dataset.function
+    @trigger('change:stretch', stretch)
 
   # Methods for keeping UI synchronized with webfits object
   updateAlpha: (value) ->

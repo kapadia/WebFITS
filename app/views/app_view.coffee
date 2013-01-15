@@ -12,10 +12,8 @@ class AppView extends View
     @router = new AppRouter()
     WebFITS?.Routers?.AppRouter = @router
     
-    # Initialize the WebFITS viewer
-    @webfits = new WebFitsView()
-    
-    # Initialize DataSource view
+    # Initialize the WebFITS viewer and DataSource view
+    @webfits    = new WebFitsView()
     @datasource = new DataSource()
     
     # Bind events

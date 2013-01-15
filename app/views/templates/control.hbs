@@ -44,6 +44,26 @@
 
 <div class='parameters grayscale'>
   <div class='subtitle'>
+    <p class='left'>Stretch Function</p>
+  </div>
+  <div class='stretchfn'>
+    <input type='radio' name='stretch' id='linear' />
+    <label for='linear' data-function='linear'>Linear</label>
+    
+    <input type='radio' name='stretch' id='logarithm' />
+    <label for='logarithm' data-function='logarithm'>Logarithm</label>
+    
+    <input type='radio' name='stretch' id='sqrt' />
+    <label for='sqrt' data-function='sqrt'>Square Root</label>
+    
+    <input type='radio' name='stretch' id='arcsinh' />
+    <label for='arcsinh' data-function='arcsinh'>Arcsinh</label>
+    
+    <input type='radio' name='stretch' id='power' />
+    <label for='power' data-function='power'>Power</label>
+  </div>
+  
+  <div class='subtitle'>
     <p class='left'>Scale Parameters</p>
   </div>
   <input type="range" class='extent' name="min" min="0" max="1000" step="1" value="0">

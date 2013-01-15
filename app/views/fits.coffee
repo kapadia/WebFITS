@@ -29,13 +29,9 @@ class FitsView extends View
     'z.MP9801': 9000
   
   initialize: =>
-    
-    # # Hide the root element
-    # @el.style.display = 'none'
-    
     @getApi()
     
-    @on 'webfits-ready', =>
+    @on 'webfits:ready', =>
       # NOTE: Dimensions and global extent are hard coded
       @wfits = new astro.WebFITS.Api(@el, @width, @height)
       @wfits.setGlobalExtent(@surveyMinPixel, @surveyMaxPixel)
@@ -44,13 +40,12 @@ class FitsView extends View
       unless ctx?
         alert 'Something went wrong initializing the context'
       
-      @off 'webfits-ready'
+      @off 'webfits:ready'
     
     # Initialize a collections for storing FITS images
     @collection = new Layers()
   
   getApi: ->
-    
     unless DataView?
       alert 'Sorry, your browser does not support features needed for this tool.'
     
@@ -62,10 +57,11 @@ class FitsView extends View
     # Load appropriate webfits library asynchronously
     lib = if context? then 'gl' else 'canvas'
     url = "javascripts/webfits-#{lib}.js"
-    $.getScript(url, => @trigger 'webfits-ready')
+    $.getScript(url, => @trigger 'webfits:ready')
     
   requestData: (id) =>
-    FITS = astro.FITS
+    
+    # Clear the collection of previously requested data
     @collection.reset()
     
     dfs = []
@@ -84,7 +80,7 @@ class FitsView extends View
         xhr.responseType = 'arraybuffer'
         xhr.onload = (e) =>
           # Initialize FITS object and read image data
-          fits = new FITS.File(xhr.response)
+          fits = new astro.FITS.File(xhr.response)
           fits.getDataUnit().getFrame()
           hdu = fits.getHDU()
           
@@ -116,9 +112,6 @@ class FitsView extends View
         @wfits.setAlpha(@defaultAlpha)
         @wfits.setQ(@defaultQ)
         @wfits.setupMouseInteraction()
-        
-        # # Show the root element
-        # @el.style.display = 'inline-block'
         
         @trigger "fits:ready"
       )
@@ -174,18 +167,17 @@ class FitsView extends View
       i++
     return [min, max]
   
-  # Responds to user selection of band.  Sends image(s) to web fits context.
-  getBand: (band) =>
-    fn = if band is 'gri' then 'drawColor' else 'drawGrayscale'
-    
+  # Responds to user selection of band
+  updateBand: (band) =>
     if band is 'gri'
       fn = 'drawColor'
     else
       fn = 'drawGrayscale'
+      
+      # Compute the min/max of the image set
       unless @collection.hasExtent
         @collection.each( (l) =>
           [min, max] = @computeExtent(l.getData())
-          band = l.get('band')
           l.set('minimum', min)
           l.set('maximum', max)
         )
@@ -195,9 +187,12 @@ class FitsView extends View
         globalMin = Math.min.apply(Math, mins)
         globalMax = Math.max.apply(Math, maxs)
         @wfits.setGlobalExtent(globalMin, globalMax)
+        @wfits.setExtent(0, 1000)
+      
+      @wfits.setBand(band)
     
     # Call draw function
-    @wfits[fn](band)
+    @wfits[fn]()
   
   updateExtent: (min, max) =>
     @wfits.setExtent(min, max)
@@ -210,6 +205,9 @@ class FitsView extends View
   
   updateScale: (band, value) =>
     @wfits.setScale(band, value)
+  
+  updateStretch: (value) =>
+    @wfits.setStretch(value)
 
 
 module.exports = FitsView
