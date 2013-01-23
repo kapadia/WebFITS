@@ -1,3 +1,4 @@
+# TODO: Make more appropriate name
 
 View    = require '../lib/view'
 Layer   = require '../models/Layer'

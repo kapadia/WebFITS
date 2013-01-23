@@ -19,9 +19,28 @@
       image-rendering optimize-contrast
     
   .controls
-    display inline-block
+    display none
     line-height 1
     vertical-align top
+    
+    .help
+      position absolute
+      right 0
+      top 25%
+      color yellow
+      font-weight 200
+      text-shadow 0 1px 0 $gray
+      font-size 11px
+      cursor pointer
+    
+    .info
+      display none
+      position fixed
+      width 200px
+      padding 8px
+      border-radius 3px
+      background $white
+      font-size 11px
     
     .spinner
       display none
@@ -38,6 +57,7 @@
         animation spin 1s linear infinite
     
     .bands
+      position relative
       margin-bottom 20px
       
       input[type='radio']
@@ -49,28 +69,19 @@
         @extend #standard-button
         display inline-block
         cursor pointer
-  
+    
     .parameters
       display none
       
       .subtitle
+        position relative
         
-        .left
-          float left
+        p
           font-size 16px
           text-shadow 0 1px 0 $gray
           font-weight 200
-          
-        .right
-          float right
-          box-sizing border-box
-          font-size 10px
-          color $white
-          border 1px solid $white
-          cursor pointer
       
       .stretchfn
-        clear both
         margin-bottom 20px
 
         input[type='radio']

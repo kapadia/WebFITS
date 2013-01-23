@@ -11,6 +11,9 @@ class ControlView extends View
     'change input.scale'            : 'setScale'
     'change input.extent'           : 'setExtent'
     'click input[name="stretch"]'   : 'setStretch'
+    'mouseover .help'               : 'showHelp'
+    'mouseout .help'                : 'hideHelp'
+    
   
   initialize: =>
     @render()
@@ -30,14 +33,18 @@ class ControlView extends View
     @i      = @find('input[name="i"] + .parameter')
     @params = @find('.parameters')
   
-  render: -> @$el.append @template()
-  startAjax: -> @find('.spinner').addClass('active')
+  render: ->
+    @$el.append @template()
+    
+  startAjax: ->
+    @find('.spinner').addClass('active')
   
   # Ready is called when all FITS images have been transferred.
   ready: ->
     # Stop the spinner and enable parameters
     @find('.spinner').removeClass('active')
     @find('*').removeProp('disabled')
+    @$el.css('display', 'inline-block')
     
     # Set default states for buttons (these do not fire events)
     @find('label[for="gri"]').click()
@@ -59,6 +66,30 @@ class ControlView extends View
       @params.filter('.color').hide()
       @params.filter('.grayscale').show()
     @trigger('change:band', band)
+    
+    #
+    # Playing with LEAP!
+    #
+    
+    ws = new WebSocket("ws://localhost:6437/")
+    ws.onopen = (e) =>
+      console.log 'websocket ready'
+    ws.onmessage = (e) =>
+      lookup = ['gri', 'u', 'g', 'r', 'i', 'z']
+      obj = JSON.parse(e.data)
+      
+      if obj.pointables?
+        if obj.pointables.length > 0
+          x = obj.pointables[0].tipPosition[0]
+          z = obj.pointables[0].tipPosition[2]
+          
+          return if x < -100
+          return if x > 100
+          
+          # Normalize between 0.01 to 1
+          alpha = (0.99 / 200) * (x - 100) + 1
+          @trigger('change:alpha', alpha)
+          document.querySelector('input[name="alpha"]').value = alpha
   
   setExtent: (e) ->
     min = @find('input[name="min"]').val()
@@ -92,6 +123,16 @@ class ControlView extends View
     stretch = @find('input[name="stretch"]:checked + label')[0].dataset.function
     @trigger('change:stretch', stretch)
 
+  showHelp: (e) =>
+    info = e.target.parentElement.querySelector('.info')
+    info.style.left = e.clientX + 16
+    info.style.top = e.clientY
+    info.style.display = 'block'
+  
+  hideHelp: (e) =>
+    info = e.target.parentElement.querySelector('.info')
+    info.style.display = 'none'
+  
   # Methods for keeping UI synchronized with webfits object
   updateAlpha: (value) ->
     @find("input[name='alpha']").val(value)

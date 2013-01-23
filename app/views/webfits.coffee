@@ -2,18 +2,23 @@ View = require '../lib/view'
 
 ControlView = require 'views/Control'
 FitsView    = require 'views/fits'
+State       = require 'models/State'
 
 class WebFitsView extends View
   el: '.container'
   template: require 'views/templates/webfits'
   className: 'webfits'
+  nStateParams: 13
   
   initialize: ->
-    
     @render()
     
     @control  = new ControlView({el: @find('.controls')})
     @fits     = new FitsView({el: @find('.viewer')})
+    
+    # console.log 'initialize', @options
+    # if @options?
+    #   @setState()
     
     # Bind events
     @fits.on('fits:ready', @onFitsReady)
@@ -30,6 +35,22 @@ class WebFitsView extends View
   
   render: ->
     @$el.append @template()
+  
+  # Set the state of the tools
+  # (dataid, band, alpha, Q, rscale, gscale, bscale, stretch, min, max, x, y, zoom)
+  # e.g. http://localhost:3333/#/CFHTLS_01/gri/
+  setState: ->
+    return null if @options.length isnt @nStateParams
+    
+    [dataid, band, alpha, Q, rscale, gscale, bscale, stretch, min, max, x, y, zoom] = @options
+    
+    @fits.on('fits:ready', =>
+      @onFitsReady()
+      @fits.off('fits:ready', arguments.callee, false)
+    )
+    @setDataset(dataid)
+    # @onBandChange(band)
+    
   
   onFitsReady: =>
     @control.ready()
